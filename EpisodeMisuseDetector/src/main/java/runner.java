@@ -13,6 +13,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
 import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.SimpleName;
@@ -81,12 +82,12 @@ public class runner {
 						@Override
 						public boolean visit(MethodDeclaration node) {
 							
+							ASTNode parent = node.getParent();
 							IMethodBinding binding = node.resolveBinding();
 							
-//							binding.getDeclaringClass()
-							String string = binding.getJavaElement().toString();
 							
-							ASTNode classBody = node.getParent();
+							
+							
 
 							firstCtx = null;
 							superCtx = null;
