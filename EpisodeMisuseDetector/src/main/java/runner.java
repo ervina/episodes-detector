@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
@@ -13,12 +12,14 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
 import org.eclipse.jdt.core.dom.IMethodBinding;
-import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
+import cc.episodeMining.mubench.model.EventGenerator;
+import cc.kave.commons.model.naming.Names;
+import cc.kave.commons.model.naming.codeelements.IMethodName;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.Events;
 
@@ -32,6 +33,9 @@ import de.tu_darmstadt.stg.mubench.cli.DetectorOutput.Builder;
 import de.tu_darmstadt.stg.mubench.cli.MuBenchRunner;
 
 public class runner {
+
+	private EventGenerator eventGenerator = new EventGenerator();
+
 	public static void main(String[] args) throws Exception {
 		new MuBenchRunner().withMineAndDetectStrategy(new Strategy()).run(args);
 	}
@@ -81,18 +85,8 @@ public class runner {
 					cu.accept(new ASTVisitor() {
 						@Override
 						public boolean visit(MethodDeclaration node) {
-							
-							ASTNode parent = node.getParent();
-							IMethodBinding binding = node.resolveBinding();
-							
-							
-							
-							
 
-							firstCtx = null;
-							superCtx = null;
-							SimpleName name = node.getName();
-							elementCtx = name;
+							Event event = generateEvent(node.resolveBinding());
 
 							return super.visit(node);
 						}
@@ -101,21 +95,22 @@ public class runner {
 						public boolean visit(MethodInvocation node) {
 							return super.visit(node);
 						}
-						
+
 						@Override
 						public boolean visit(ConstructorInvocation node) {
 							// TODO Auto-generated method stub
 							return super.visit(node);
 						}
-						
+
 						@Override
 						public void endVisit(MethodInvocation node) {
-							
-							IMethodBinding resolveMethodBinding = node.resolveMethodBinding();
-							
-							//invocations
-//							binding.getDeclaredReceiverType();
-							
+
+							IMethodBinding resolveMethodBinding = node
+									.resolveMethodBinding();
+
+							// invocations
+							// binding.getDeclaredReceiverType();
+
 							String name = node.getName().getIdentifier();
 
 							if (elementCtx != null) {
@@ -135,13 +130,27 @@ public class runner {
 						}
 					});
 				}
+				
+				private Event generateEvent(IMethodBinding binding) {
+					String typeName = binding.getDeclaringClass()
+							.getName();
+					String methodName = binding.getName();
+
+					String fullName = typeName + "." + methodName;
+
+					IMethodName method = Names.newMethod(fullName);
+
+					Event event = Events.newElementContext(method);
+					return event;
+				}
 
 				private void buildHierarchy(AbstractTypeDeclaration type,
 						String prefix) {
 					if (type instanceof TypeDeclaration) {
-						
-						String typeName = prefix + type.getName().getIdentifier();
-						
+
+						String typeName = prefix
+								+ type.getName().getIdentifier();
+
 						if (((TypeDeclaration) type).getSuperclassType() != null) {
 						}
 					}
