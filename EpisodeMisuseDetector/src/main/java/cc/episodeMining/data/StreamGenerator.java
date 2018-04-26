@@ -10,64 +10,66 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
 import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
-import org.eclipse.jdt.core.dom.SimpleName;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
 
+import cc.episodeMining.mubench.model.EventGenerator;
 import cc.kave.episodes.model.events.Event;
-import cc.kave.episodes.model.events.Events;
 
 import com.google.common.collect.Lists;
 
 public class StreamGenerator {
 
-	public List<Event> generateMethodTraces(File sourcePath,
-			String[] classpaths) {
+	private List<Event> stream;
+
+	public StreamGenerator() {
+		this.stream = Lists.newLinkedList();
+	}
+
+	public List<Event> generateMethodTraces(File sourcePath, String[] classpaths) {
 		ArrayList<File> files = getPaths(sourcePath);
 		String[] paths = new String[files.size()];
 		for (int i = 0; i < files.size(); i++) {
 			paths[i] = files.get(i).getAbsolutePath();
 		}
-		final List<Event> methodCallSequences = Lists.newLinkedList();
 		FileASTRequestor r = new FileASTRequestor() {
 
-			private SimpleName firstCtx;
-			private SimpleName superCtx;
-			private SimpleName elementCtx;
-
-			private ArrayList<Event> tempStream = new ArrayList<Event>();
+			private Event firstCtx;
+			private Event superCtx;
+			private Event elementCtx;
 
 			@Override
 			public void acceptAST(String sourceFilePath, CompilationUnit cu) {
 
-				for (int i = 0; i < cu.types().size(); i++) {
-					buildHierarchy((AbstractTypeDeclaration) cu.types()
-							.get(i), cu.getPackage() == null ? "" : cu
-							.getPackage().getName().getFullyQualifiedName()
-							+ ".");
-				}
+				// for (int i = 0; i < cu.types().size(); i++) {
+				// buildHierarchy((AbstractTypeDeclaration) cu.types().get(i),
+				// cu.getPackage() == null ? "" : cu.getPackage()
+				// .getName().getFullyQualifiedName()
+				// + ".");
+				// }
 
 				cu.accept(new ASTVisitor() {
 					@Override
 					public boolean visit(MethodDeclaration node) {
-						
+
 						ASTNode parent = node.getParent();
 						IMethodBinding binding = node.resolveBinding();
-						
-						
-						
-						
 
 						firstCtx = null;
 						superCtx = null;
-						SimpleName name = node.getName();
-						elementCtx = name;
+						elementCtx = EventGenerator.elementContext(binding);
+
+						ITypeBinding typeBinding = binding.getDeclaringClass()
+								.getTypeDeclaration();
+						buildHierarchy(typeBinding, binding.getMethodDeclaration(),
+								buildSignature(binding));
+						System.out.println("Super context: "
+								+ superCtx.getType().getFullName());
 
 						return super.visit(node);
 					}
@@ -76,30 +78,31 @@ public class StreamGenerator {
 					public boolean visit(MethodInvocation node) {
 						return super.visit(node);
 					}
-					
+
 					@Override
 					public boolean visit(ConstructorInvocation node) {
 						// TODO Auto-generated method stub
 						return super.visit(node);
 					}
-					
+
 					@Override
 					public void endVisit(MethodInvocation node) {
-						
-						IMethodBinding resolveMethodBinding = node.resolveMethodBinding();
-						
-						//invocations
-//						binding.getDeclaredReceiverType();
-						
+
+						IMethodBinding resolveMethodBinding = node
+								.resolveMethodBinding();
+
+						// invocations
+						// binding.getDeclaredReceiverType();
+
 						String name = node.getName().getIdentifier();
 
-						if (elementCtx != null) {
-							methodCallSequences.add(Events
-									.newElementContext(elementCtx
-											.getFullyQualifiedName()));
-							elementCtx = null;
-						}
-						methodCallSequences.add(Events.newInvocation(name));
+						// if (elementCtx != null) {
+						// methodCallSequences.add(Events
+						// .newElementContext(elementCtx
+						// .getFullyQualifiedName()));
+						// elementCtx = null;
+						// }
+						// methodCallSequences.add(Events.newInvocation(name));
 
 						super.endVisit(node);
 					}
@@ -111,15 +114,47 @@ public class StreamGenerator {
 				});
 			}
 
-			private void buildHierarchy(AbstractTypeDeclaration type,
-					String prefix) {
-				if (type instanceof TypeDeclaration) {
-					
-					String typeName = prefix + type.getName().getIdentifier();
-					
-					if (((TypeDeclaration) type).getSuperclassType() != null) {
+			private ITypeBinding buildHierarchy(ITypeBinding type,
+					IMethodBinding method, String sig) {
+				if (type.getSuperclass() != null) {
+					ITypeBinding stb = buildHierarchy(type.getSuperclass()
+							.getTypeDeclaration(), method, sig);
+					if (stb != null) {
+						superCtx = EventGenerator.superContext(stb, method);
+						return stb;
 					}
 				}
+				for (ITypeBinding itb : type.getInterfaces()) {
+					ITypeBinding stb = buildHierarchy(itb.getTypeDeclaration(), method,
+							sig);
+					if (stb != null) {
+						firstCtx = EventGenerator.firstContext(stb, method);
+						return stb;
+					}
+				}
+				if (method.getDeclaringClass().getTypeDeclaration() == type)
+					return type;
+				for (IMethodBinding smb : type.getDeclaredMethods()) {
+					if (buildSignature(smb).equals(sig))
+						return type;
+				}
+				return null;
+			}
+
+			private String buildSignature(IMethodBinding mb) {
+				StringBuilder sb = new StringBuilder();
+				sb.append(mb.getName() + "#");
+				for (ITypeBinding tb : mb.getParameterTypes())
+					sb.append(tb.getTypeDeclaration().getName() + "#");
+				return sb.toString();
+			}
+
+			private IMethodBinding getMH(ITypeBinding stb, IMethodBinding method) {
+				for (IMethodBinding m : stb.getDeclaredMethods()) {
+					if (m.getName().equalsIgnoreCase(method.getName()))
+						return m;
+				}
+				return null;
 			}
 		};
 		@SuppressWarnings("rawtypes")
@@ -130,14 +165,14 @@ public class StreamGenerator {
 		options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_8);
 		ASTParser parser = ASTParser.newParser(AST.JLS8);
 		parser.setCompilerOptions(options);
-		parser.setEnvironment(classpaths == null ? new String[0]
-				: classpaths, new String[] {}, new String[] {}, true);
+		parser.setEnvironment(classpaths == null ? new String[0] : classpaths,
+				new String[] {}, new String[] {}, true);
 		parser.setResolveBindings(true);
 		parser.setBindingsRecovery(true);
 		parser.createASTs(paths, null, new String[0], r, null);
-		return methodCallSequences;
+		return stream;
 	}
-	
+
 	public static ArrayList<File> getPaths(File dir) {
 		ArrayList<File> files = new ArrayList<>();
 		if (dir.isDirectory())
