@@ -2,6 +2,9 @@ package cc.episodeMining.mudetect;
 
 import cc.kave.commons.model.naming.Names;
 import cc.kave.commons.model.naming.codeelements.IMethodName;
+import cc.kave.episodes.export.EventStreamIo;
+import cc.kave.episodes.mining.reader.EpisodeParser;
+import cc.kave.episodes.mining.reader.FileReader;
 import cc.kave.episodes.model.Episode;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
@@ -9,6 +12,7 @@ import cc.kave.episodes.model.events.Fact;
 import de.tu_darmstadt.stg.mudetect.aug.model.patterns.APIUsagePattern;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.*;
 
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasNodes;
@@ -65,6 +69,22 @@ public class EpisodesToPatternTransformerTest {
 
         assertThat(patterns, hasSize(1));
         assertThat(patterns.iterator().next().getSupport(), is(2345890));
+    }
+
+    @Test
+    public void smokeTest() {
+        File data = new File(getClass().getResource("/episodes").getFile().replaceAll("%20", " "));
+
+        Map<Integer, Set<Episode>> episodesByNumNodes = new EpisodeParser(data, new FileReader()).parse(1);
+        List<Event> mapping = EventStreamIo.readMapping(new File(data, "mapping.txt").getAbsolutePath());
+        EpisodesToPatternTransformer transformer = new EpisodesToPatternTransformer();
+
+        Set<APIUsagePattern> patterns = new HashSet<>();
+        for (Set<Episode> episodes : episodesByNumNodes.values()) {
+            patterns.addAll(transformer.transform(episodes, mapping));
+        }
+
+        System.out.println("Converted " + patterns.size() + " episodes to patterns.");
     }
 
     private Episode createEpisode(int frequency, Fact... facts) {
