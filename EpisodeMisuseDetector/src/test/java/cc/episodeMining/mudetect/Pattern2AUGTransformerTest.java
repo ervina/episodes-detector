@@ -23,7 +23,7 @@ import static org.junit.Assert.assertThat;
 public class Pattern2AUGTransformerTest {
 
     @Test
-    public void transformsEpisode() {
+    public void transformsOneEventEpisode() {
         Set<Episode> episodes = new HashSet<>(Collections.singletonList(
                 createEpisode(42, new Fact(0))
         ));
