@@ -1,8 +1,11 @@
 package cc.episodeMining.mudetect;
 
+import cc.kave.commons.model.naming.codeelements.IMethodName;
+import cc.kave.episodes.export.EventStreamIo;
 import cc.kave.episodes.mining.reader.EpisodeParser;
 import cc.kave.episodes.mining.reader.FileReader;
 import cc.kave.episodes.model.Episode;
+import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.Fact;
 import de.tu_darmstadt.stg.mudetect.aug.model.actions.MethodCallNode;
 import de.tu_darmstadt.stg.mudetect.aug.model.patterns.APIUsagePattern;
@@ -15,6 +18,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,42 +42,48 @@ public class Pattern2AUGTransformerTest {
 
     @Test
     public void transformsEpisode() {
-        File file = createFileWithContent(
+        File episodes = createFileWithContent(
                 "1-NOde Episodes = 6\n" +
                 "1 .	: 3	: 1	:. \n"
+        );
+        File mappingFile = createMapping(
+                "[{},{\"Kind\":\"FIRST_DECLARATION\",\"Method\":\"0M:[p:void] [i:Namespace.DeclaringType, a, 1].M()\"}]"
         );
 
         Map<Integer, Set<Episode>> actual = parser.parse(NUMREPOS);
 
-        Set<APIUsagePattern> patterns = transform(actual);
+        List<Event> mapping = EventStreamIo.readMapping(mappingFile.getAbsolutePath());
+
+        Set<APIUsagePattern> patterns = transform(actual, mapping);
 
         assertThat(patterns, hasSize(1));
-        assertThat(patterns.iterator().next(), hasNodes(methodCall("1", "1")));
+        assertThat(patterns.iterator().next(), hasNodes(methodCall("Namespace.DeclaringType", "M()")));
     }
 
-    private Set<APIUsagePattern> transform(Map<Integer, Set<Episode>> episodes) {
+    private Set<APIUsagePattern> transform(Map<Integer, Set<Episode>> episodes, List<Event> mapping) {
         Set<APIUsagePattern> patterns = new HashSet<>();
         for (Set<Episode> episodeSet : episodes.values()) {
             for (Episode episode : episodeSet) {
-                patterns.add(transform(episode));
+                patterns.add(transform(episode, mapping));
             }
         }
         return patterns;
     }
 
-    private APIUsagePattern transform(Episode episode) {
+    private APIUsagePattern transform(Episode episode, List<Event> mapping) {
         APIUsagePattern pattern = new APIUsagePattern(episode.getFrequency(), new HashSet<>());
         for (Fact fact : episode.getFacts()) {
             if (!fact.isRelation()) {
-                String id = String.valueOf(fact.getFactID());
-                pattern.addVertex(new MethodCallNode(id, id));
+                Event event = mapping.get(fact.getFactID());
+                IMethodName method = event.getMethod();
+                pattern.addVertex(new MethodCallNode(method.getDeclaringType().getFullName(), method.getName() + "()"));
             }
         }
         return pattern;
     }
 
     private File createFileWithContent(String content) {
-        File file = getFilePath();
+        File file = new File(new File(rootFolder.getRoot().getAbsolutePath(), NUMREPOS + "Repos"), "episodes.txt");
         try {
             FileUtils.writeStringToFile(file, content);
         } catch (IOException e) {
@@ -82,7 +92,13 @@ public class Pattern2AUGTransformerTest {
         return file;
     }
 
-    private File getFilePath() {
-        return new File(rootFolder.getRoot().getAbsolutePath() + "/" + NUMREPOS + "Repos/episodes.txt");
+    private File createMapping(String content) {
+        File mappingFile = new File(rootFolder.getRoot().getAbsolutePath(), "mapping.txt");
+        try {
+            FileUtils.writeStringToFile(mappingFile, content);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return mappingFile;
     }
 }
