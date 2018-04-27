@@ -20,6 +20,7 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 
 import cc.episodeMining.mubench.model.EventGenerator;
 import cc.kave.episodes.model.events.Event;
+import cc.kave.episodes.model.events.Events;
 
 import com.google.common.collect.Lists;
 
@@ -66,10 +67,10 @@ public class StreamGenerator {
 
 						ITypeBinding typeBinding = binding.getDeclaringClass()
 								.getTypeDeclaration();
-						buildHierarchy(typeBinding, binding.getMethodDeclaration(),
+						getSuper(typeBinding, binding.getMethodDeclaration(),
 								buildSignature(binding));
-						System.out.println("Super context: "
-								+ superCtx.getType().getFullName());
+						getFirst(typeBinding, binding.getMethodDeclaration(),
+								buildSignature(binding));
 
 						return super.visit(node);
 					}
@@ -81,30 +82,50 @@ public class StreamGenerator {
 
 					@Override
 					public boolean visit(ConstructorInvocation node) {
-						// TODO Auto-generated method stub
 						return super.visit(node);
+					}
+
+					@Override
+					public void endVisit(ConstructorInvocation node) {
+
+						IMethodBinding bindings = node
+								.resolveConstructorBinding()
+								.getMethodDeclaration();
+						addEnclosingContextIfAvailable();
+						stream.add(EventGenerator.constructor(bindings));
+
+						super.endVisit(node);
 					}
 
 					@Override
 					public void endVisit(MethodInvocation node) {
 
-						IMethodBinding resolveMethodBinding = node
-								.resolveMethodBinding();
-
-						// invocations
-						// binding.getDeclaredReceiverType();
-
-						String name = node.getName().getIdentifier();
-
-						// if (elementCtx != null) {
-						// methodCallSequences.add(Events
-						// .newElementContext(elementCtx
-						// .getFullyQualifiedName()));
-						// elementCtx = null;
-						// }
-						// methodCallSequences.add(Events.newInvocation(name));
-
+						ASTNode parent = node.getParent();
+						IMethodBinding binding = node.resolveMethodBinding();
+						IMethodBinding methodBinding = binding.getMethodDeclaration();
+						addEnclosingContextIfAvailable();
+						stream.add(EventGenerator.invocation(methodBinding));
 						super.endVisit(node);
+					}
+
+					private void addEnclosingContextIfAvailable() {
+						if (elementCtx != null) {
+							stream.add(elementCtx);
+							elementCtx = null;
+						}
+						if (firstCtx != null) {
+							stream.add(firstCtx);
+							System.out.println("First context: "
+									+ firstCtx.getMethod().getFullName());
+							firstCtx = null;
+						}
+						if (superCtx != null) {
+							stream.add(superCtx);
+							System.out.println("Super context: "
+									+ superCtx.getMethod().getFullName());
+							superCtx = null;
+						}
+
 					}
 
 					@Override
@@ -114,19 +135,32 @@ public class StreamGenerator {
 				});
 			}
 
-			private ITypeBinding buildHierarchy(ITypeBinding type,
+			private ITypeBinding getSuper(ITypeBinding type,
 					IMethodBinding method, String sig) {
+
 				if (type.getSuperclass() != null) {
-					ITypeBinding stb = buildHierarchy(type.getSuperclass()
+					ITypeBinding stb = getSuper(type.getSuperclass()
 							.getTypeDeclaration(), method, sig);
 					if (stb != null) {
 						superCtx = EventGenerator.superContext(stb, method);
 						return stb;
 					}
 				}
+				if (method.getDeclaringClass().getTypeDeclaration() == type)
+					return type;
+				for (IMethodBinding smb : type.getDeclaredMethods()) {
+					if (buildSignature(smb).equals(sig))
+						return type;
+				}
+				return null;
+			}
+
+			private ITypeBinding getFirst(ITypeBinding type,
+					IMethodBinding method, String sig) {
+
 				for (ITypeBinding itb : type.getInterfaces()) {
-					ITypeBinding stb = buildHierarchy(itb.getTypeDeclaration(), method,
-							sig);
+					ITypeBinding stb = getFirst(itb.getTypeDeclaration(),
+							method, sig);
 					if (stb != null) {
 						firstCtx = EventGenerator.firstContext(stb, method);
 						return stb;
@@ -140,6 +174,34 @@ public class StreamGenerator {
 				}
 				return null;
 			}
+
+			// private ITypeBinding buildHierarchy(ITypeBinding type,
+			// IMethodBinding method, String sig) {
+			// if (type.getSuperclass() != null) {
+			// ITypeBinding stb = buildHierarchy(type.getSuperclass()
+			// .getTypeDeclaration(), method, sig);
+			// if (stb != null) {
+			// superCtx = EventGenerator.superContext(stb, method);
+			// return stb;
+			// }
+			// }
+			// for (ITypeBinding itb : type.getInterfaces()) {
+			// ITypeBinding stb = buildHierarchy(itb.getTypeDeclaration(),
+			// method,
+			// sig);
+			// if (stb != null) {
+			// firstCtx = EventGenerator.firstContext(stb, method);
+			// return stb;
+			// }
+			// }
+			// if (method.getDeclaringClass().getTypeDeclaration() == type)
+			// return type;
+			// for (IMethodBinding smb : type.getDeclaredMethods()) {
+			// if (buildSignature(smb).equals(sig))
+			// return type;
+			// }
+			// return null;
+			// }
 
 			private String buildSignature(IMethodBinding mb) {
 				StringBuilder sb = new StringBuilder();

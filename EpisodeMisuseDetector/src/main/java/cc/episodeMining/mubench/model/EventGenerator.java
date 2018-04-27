@@ -31,7 +31,6 @@ public class EventGenerator {
 
 	public static Event superContext(ITypeBinding type, IMethodBinding binding) {
 
-		ITypeName typeName = getType(binding);
 		IMethodName methodName = getMethod(binding);
 
 		Event event = new Event();
@@ -44,12 +43,37 @@ public class EventGenerator {
 	
 	public static Event firstContext(ITypeBinding type, IMethodBinding binding) {
 
-		ITypeName typeName = getType(binding);
 		IMethodName methodName = getMethod(binding);
 
 		Event event = new Event();
 		event.setKind(EventKind.FIRST_DECLARATION);
 		event.setType(Names.newType(type.getName()));
+		event.setMethod(methodName);
+
+		return event;
+	}
+	
+	public static Event invocation(IMethodBinding binding) {
+
+		ITypeName typeName = getType(binding);
+		IMethodName methodName = getMethod(binding);
+
+		Event event = new Event();
+		event.setKind(EventKind.INVOCATION);
+		event.setType(typeName);
+		event.setMethod(methodName);
+
+		return event;
+	}
+	
+	public static Event constructor(IMethodBinding binding) {
+
+		ITypeName typeName = getType(binding);
+		IMethodName methodName = Names.newMethod(".ctor()");
+
+		Event event = new Event();
+		event.setKind(EventKind.INVOCATION);
+		event.setType(typeName);
 		event.setMethod(methodName);
 
 		return event;
