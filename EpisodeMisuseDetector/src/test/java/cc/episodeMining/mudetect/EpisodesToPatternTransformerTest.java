@@ -15,6 +15,7 @@ import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasNodes;
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasOrderEdge;
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.NodeMatchers.methodCall;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class EpisodesToPatternTransformerTest {
@@ -51,6 +52,19 @@ public class EpisodesToPatternTransformerTest {
         assertThat(patterns, hasSize(1));
         assertThat(patterns.iterator().next(),
                 hasOrderEdge(methodCall("Namespace.DeclaringType", "M()"), methodCall("Other.Type", "N()")));
+    }
+
+    @Test
+    public void keepsEpisodeFrequency() {
+        Set<Episode> episodes = new HashSet<>(Collections.singletonList(
+                createEpisode(2345890)
+        ));
+        List<Event> mapping = Collections.emptyList();
+
+        Set<APIUsagePattern> patterns = new EpisodesToPatternTransformer().transform(episodes, mapping);
+
+        assertThat(patterns, hasSize(1));
+        assertThat(patterns.iterator().next().getSupport(), is(2345890));
     }
 
     private Episode createEpisode(int frequency, Fact... facts) {
