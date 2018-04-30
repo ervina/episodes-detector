@@ -1,26 +1,32 @@
 package cc.episodeMining.mudetect;
 
-import cc.kave.commons.model.naming.Names;
-import cc.kave.commons.model.naming.codeelements.IMethodName;
-import cc.kave.episodes.export.EventStreamIo;
-import cc.kave.episodes.mining.reader.EpisodeParser;
-import cc.kave.episodes.mining.reader.FileReader;
-import cc.kave.episodes.model.Episode;
-import cc.kave.episodes.model.events.Event;
-import cc.kave.episodes.model.events.EventKind;
-import cc.kave.episodes.model.events.Fact;
-import de.tu_darmstadt.stg.mudetect.aug.model.patterns.APIUsagePattern;
-import org.junit.Test;
-
-import java.io.File;
-import java.util.*;
-
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasNodes;
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasOrderEdge;
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.NodeMatchers.methodCall;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.junit.Test;
+
+import cc.kave.commons.model.naming.Names;
+import cc.kave.commons.model.naming.codeelements.IMethodName;
+import cc.kave.episodes.io.EpisodeParser;
+import cc.kave.episodes.io.EventStreamIo;
+import cc.kave.episodes.io.FileReader;
+import cc.kave.episodes.model.Episode;
+import cc.kave.episodes.model.events.Event;
+import cc.kave.episodes.model.events.EventKind;
+import cc.kave.episodes.model.events.Fact;
+import de.tu_darmstadt.stg.mudetect.aug.model.patterns.APIUsagePattern;
 
 public class EpisodesToPatternTransformerTest {
 
@@ -75,8 +81,9 @@ public class EpisodesToPatternTransformerTest {
     public void smokeTest() {
         File data = new File(getClass().getResource("/episodes").getFile().replaceAll("%20", " "));
 
-        Map<Integer, Set<Episode>> episodesByNumNodes = new EpisodeParser(data, new FileReader()).parse(1);
-        List<Event> mapping = EventStreamIo.readMapping(new File(data, "mapping.txt").getAbsolutePath());
+        Map<Integer, Set<Episode>> episodesByNumNodes = new EpisodeParser(data, new FileReader()).parser(1);
+        EventStreamIo streamIo = new EventStreamIo(new File(data, "mapping.txt"));
+        List<Event> mapping = streamIo.readMapping(1);
         EpisodesToPatternTransformer transformer = new EpisodesToPatternTransformer();
 
         Set<APIUsagePattern> patterns = new HashSet<>();

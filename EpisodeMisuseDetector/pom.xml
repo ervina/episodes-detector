@@ -10,6 +10,10 @@
 			<id>stg-mubench</id>
 			<url>http://www.st.informatik.tu-darmstadt.de/artifacts/mubench/mvn/</url>
 		</repository>
+		<repository>
+			<id>stg-mudetect</id>
+			<url>http://www.st.informatik.tu-darmstadt.de/artifacts/mudetect/mvn/</url>
+		</repository>
 	</repositories>
 
 	<properties>
