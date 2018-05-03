@@ -5,7 +5,6 @@ import org.eclipse.jdt.core.dom.ITypeBinding;
 
 import cc.kave.commons.model.naming.Names;
 import cc.kave.commons.model.naming.codeelements.IMethodName;
-import cc.kave.commons.model.naming.types.ITypeName;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
 
@@ -18,74 +17,82 @@ public class EventGenerator {
 		// String namespace = typeDeclaration.getKey();
 		// String signature = binding.getKey();
 
-		ITypeName typeName = getType(binding);
-		IMethodName methodName = getMethod(binding);
+		String type = getType(binding);
+		String method = getMethod(binding);
 
 		Event event = new Event();
 		event.setKind(EventKind.METHOD_DECLARATION);
-		event.setType(typeName);
-		event.setMethod(methodName);
+		event.setMethod(getMethodName(type, method));
 
 		return event;
 	}
 
 	public static Event superContext(ITypeBinding type, IMethodBinding binding) {
 
-		IMethodName methodName = getMethod(binding);
+		String method = getMethod(binding);
 
 		Event event = new Event();
 		event.setKind(EventKind.SUPER_DECLARATION);
-		event.setType(Names.newType(type.getName()));
-		event.setMethod(methodName);
+		event.setMethod(getMethodName(type.getName(), method));
 
 		return event;
 	}
-	
+
 	public static Event firstContext(ITypeBinding type, IMethodBinding binding) {
 
-		IMethodName methodName = getMethod(binding);
+		String method = getMethod(binding);
 
 		Event event = new Event();
 		event.setKind(EventKind.FIRST_DECLARATION);
-		event.setType(Names.newType(type.getName()));
-		event.setMethod(methodName);
+		event.setMethod(getMethodName(type.getName(), method));
 
 		return event;
 	}
-	
+
 	public static Event invocation(IMethodBinding binding) {
 
-		ITypeName typeName = getType(binding);
-		IMethodName methodName = getMethod(binding);
+		String type = getType(binding);
+		String method = getMethod(binding);
 
 		Event event = new Event();
 		event.setKind(EventKind.INVOCATION);
-		event.setType(typeName);
-		event.setMethod(methodName);
+		event.setMethod(getMethodName(type, method));
 
 		return event;
 	}
 	
+	public static Event invocation(String type, String method) {
+		Event event = new Event();
+		event.setKind(EventKind.INVOCATION);
+		event.setMethod(getMethodName(type, method));
+		
+		return event;
+	}
+
 	public static Event constructor(IMethodBinding binding) {
 
-		ITypeName typeName = getType(binding);
-		IMethodName methodName = Names.newMethod(".ctor()");
+		String type = getType(binding);
+		String method = ".ctor()";
 
 		Event event = new Event();
 		event.setKind(EventKind.INVOCATION);
-		event.setType(typeName);
-		event.setMethod(methodName);
+		event.setMethod(getMethodName(type, method));
 
 		return event;
 	}
 
-	private static IMethodName getMethod(IMethodBinding binding) {
+	private static String getMethod(IMethodBinding binding) {
 		String methodName = binding.getName();
-		return Names.newMethod(methodName);
+		return methodName;
 	}
 
-	private static ITypeName getType(IMethodBinding binding) {
+	private static String getType(IMethodBinding binding) {
 		String typeName = binding.getDeclaringClass().getName();
-		return Names.newType(typeName);
+		return typeName;
+	}
+	
+	private static IMethodName getMethodName(String type, String method) {
+		IMethodName methodName = Names.newMethod(type + "." + method + "()");
+		return methodName;
 	}
 }

@@ -18,6 +18,7 @@ public class runner {
 
 	public static void main(String[] args) throws Exception {
 		new MuBenchRunner().withMineAndDetectStrategy(new Strategy()).run(args);
+		System.out.println("done");
 	}
 
 	static class Strategy implements DetectionStrategy {
@@ -36,23 +37,5 @@ public class runner {
 						srcPath), classpaths));
 			}
 		}
-
-		// private void addEnclosingMethodIfAvailable() {
-		// if (elementCtx != null) {
-		// eventStream.add(Events.newElementContext(elementCtx
-		// .getFullyQualifiedName()));
-		// elementCtx = null;
-		// }
-		// if (firstCtx != null) {
-		// eventStream.add(Events.newFirstContext(firstCtx
-		// .getFullyQualifiedName()));
-		// firstCtx = null;
-		// }
-		// if (superCtx != null) {
-		// eventStream.add(Events.newSuperContext(superCtx
-		// .getFullyQualifiedName()));
-		// superCtx = null;
-		// }
-		// }
 	}
 }

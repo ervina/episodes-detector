@@ -72,6 +72,11 @@
 			<artifactId>aug</artifactId>
 			<version>0.0.2-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>de.tu-darmstadt.stg.mudetect</groupId>
+			<artifactId>mubench</artifactId>
+			<version>0.0.2-SNAPSHOT</version>
+		</dependency>
 		<!-- Testing -->
 		<dependency>
 			<groupId>junit</groupId>

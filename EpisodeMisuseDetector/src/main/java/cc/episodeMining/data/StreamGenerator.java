@@ -10,8 +10,10 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
+import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
@@ -20,9 +22,10 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 
 import cc.episodeMining.mubench.model.EventGenerator;
 import cc.kave.episodes.model.events.Event;
-import cc.kave.episodes.model.events.Events;
 
 import com.google.common.collect.Lists;
+
+import de.tu_darmstadt.stg.mudetect.utils.JavaASTUtil;
 
 public class StreamGenerator {
 
@@ -47,12 +50,12 @@ public class StreamGenerator {
 			@Override
 			public void acceptAST(String sourceFilePath, CompilationUnit cu) {
 
-				// for (int i = 0; i < cu.types().size(); i++) {
-				// buildHierarchy((AbstractTypeDeclaration) cu.types().get(i),
-				// cu.getPackage() == null ? "" : cu.getPackage()
-				// .getName().getFullyQualifiedName()
-				// + ".");
-				// }
+//				for (int i = 0; i < cu.types().size(); i++) {
+//					buildHierarchy((AbstractTypeDeclaration) cu.types().get(i),
+//							cu.getPackage() == null ? "" : cu.getPackage()
+//									.getName().getFullyQualifiedName()
+//									+ ".");
+//				}
 
 				cu.accept(new ASTVisitor() {
 					@Override
@@ -68,9 +71,9 @@ public class StreamGenerator {
 						ITypeBinding typeBinding = binding.getDeclaringClass()
 								.getTypeDeclaration();
 						getSuper(typeBinding, binding.getMethodDeclaration(),
-								buildSignature(binding));
+								JavaASTUtil.buildSignature(binding));
 						getFirst(typeBinding, binding.getMethodDeclaration(),
-								buildSignature(binding));
+								JavaASTUtil.buildSignature(binding));
 
 						return super.visit(node);
 					}
@@ -101,10 +104,24 @@ public class StreamGenerator {
 					public void endVisit(MethodInvocation node) {
 
 						ASTNode parent = node.getParent();
-						IMethodBinding binding = node.resolveMethodBinding();
-						IMethodBinding methodBinding = binding.getMethodDeclaration();
-						addEnclosingContextIfAvailable();
-						stream.add(EventGenerator.invocation(methodBinding));
+						
+						if (node.resolveMethodBinding() != null) {
+							IMethodBinding mb = node.resolveMethodBinding().getMethodDeclaration();
+							String sig = JavaASTUtil.buildSignature(mb);
+							ITypeBinding tb = getBase(mb.getDeclaringClass().getTypeDeclaration(), mb, sig);
+							String type = tb.getName();
+							
+							IMethodBinding binding = node.resolveMethodBinding();
+							IMethodBinding methodBinding = binding.getMethodDeclaration();
+							addEnclosingContextIfAvailable();
+							stream.add(EventGenerator.invocation(methodBinding));
+						} else {
+							String methodName = node.getName().getIdentifier();
+							Expression expression = node.getExpression();
+							String typeName = expression.toString();
+							addEnclosingContextIfAvailable();
+							stream.add(EventGenerator.invocation(typeName, methodName));
+						} 
 						super.endVisit(node);
 					}
 
@@ -115,14 +132,10 @@ public class StreamGenerator {
 						}
 						if (firstCtx != null) {
 							stream.add(firstCtx);
-							System.out.println("First context: "
-									+ firstCtx.getMethod().getFullName());
 							firstCtx = null;
 						}
 						if (superCtx != null) {
 							stream.add(superCtx);
-							System.out.println("Super context: "
-									+ superCtx.getMethod().getFullName());
 							superCtx = null;
 						}
 
@@ -149,7 +162,7 @@ public class StreamGenerator {
 				if (method.getDeclaringClass().getTypeDeclaration() == type)
 					return type;
 				for (IMethodBinding smb : type.getDeclaredMethods()) {
-					if (buildSignature(smb).equals(sig))
+					if (JavaASTUtil.buildSignature(smb).equals(sig))
 						return type;
 				}
 				return null;
@@ -169,52 +182,28 @@ public class StreamGenerator {
 				if (method.getDeclaringClass().getTypeDeclaration() == type)
 					return type;
 				for (IMethodBinding smb : type.getDeclaredMethods()) {
-					if (buildSignature(smb).equals(sig))
+					if (JavaASTUtil.buildSignature(smb).equals(sig))
 						return type;
 				}
 				return null;
 			}
 
-			// private ITypeBinding buildHierarchy(ITypeBinding type,
-			// IMethodBinding method, String sig) {
-			// if (type.getSuperclass() != null) {
-			// ITypeBinding stb = buildHierarchy(type.getSuperclass()
-			// .getTypeDeclaration(), method, sig);
-			// if (stb != null) {
-			// superCtx = EventGenerator.superContext(stb, method);
-			// return stb;
-			// }
-			// }
-			// for (ITypeBinding itb : type.getInterfaces()) {
-			// ITypeBinding stb = buildHierarchy(itb.getTypeDeclaration(),
-			// method,
-			// sig);
-			// if (stb != null) {
-			// firstCtx = EventGenerator.firstContext(stb, method);
-			// return stb;
-			// }
-			// }
-			// if (method.getDeclaringClass().getTypeDeclaration() == type)
-			// return type;
-			// for (IMethodBinding smb : type.getDeclaredMethods()) {
-			// if (buildSignature(smb).equals(sig))
-			// return type;
-			// }
-			// return null;
-			// }
-
-			private String buildSignature(IMethodBinding mb) {
-				StringBuilder sb = new StringBuilder();
-				sb.append(mb.getName() + "#");
-				for (ITypeBinding tb : mb.getParameterTypes())
-					sb.append(tb.getTypeDeclaration().getName() + "#");
-				return sb.toString();
-			}
-
-			private IMethodBinding getMH(ITypeBinding stb, IMethodBinding method) {
-				for (IMethodBinding m : stb.getDeclaredMethods()) {
-					if (m.getName().equalsIgnoreCase(method.getName()))
-						return m;
+			private ITypeBinding getBase(ITypeBinding tb, IMethodBinding mb, String sig) {
+				if (tb.getSuperclass() != null) {
+					ITypeBinding stb = getBase(tb.getSuperclass().getTypeDeclaration(), mb, sig);
+					if (stb != null)
+						return stb;
+				}
+				for (ITypeBinding itb : tb.getInterfaces()) {
+					ITypeBinding stb = getBase(itb.getTypeDeclaration(), mb, sig);
+					if (stb != null)
+						return stb;
+				}
+				if (mb.getDeclaringClass().getTypeDeclaration() == tb)
+					return tb;
+				for (IMethodBinding smb : tb.getDeclaredMethods()) {
+					if (JavaASTUtil.buildSignature(smb).equals(sig))
+						return tb;
 				}
 				return null;
 			}
@@ -232,6 +221,7 @@ public class StreamGenerator {
 		parser.setResolveBindings(true);
 		parser.setBindingsRecovery(true);
 		parser.createASTs(paths, null, new String[0], r, null);
+		System.out.println(stream.size());
 		return stream;
 	}
 
