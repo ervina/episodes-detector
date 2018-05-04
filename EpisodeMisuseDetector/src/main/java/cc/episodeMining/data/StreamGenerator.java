@@ -12,7 +12,6 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
-import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
@@ -115,11 +114,12 @@ public class StreamGenerator {
 							addEnclosingContextIfAvailable();
 							stream.add(EventGenerator.invocation(methodBinding));
 						} else {
-							String methodName = node.getName().getIdentifier();
-							Expression expression = node.getExpression();
-							String typeName = expression.toString();
-							addEnclosingContextIfAvailable();
-							stream.add(EventGenerator.invocation(typeName, methodName));
+							try {
+								throw new Exception("Unresolved type path");
+							} catch (Exception e) {
+								System.out.println(node.toString());
+								e.printStackTrace();
+							}
 						} 
 						super.endVisit(node);
 					}
@@ -220,7 +220,7 @@ public class StreamGenerator {
 		parser.setResolveBindings(true);
 		parser.setBindingsRecovery(true);
 		parser.createASTs(paths, null, new String[0], r, null);
-		System.out.println(stream.size());
+		System.out.println("Event stream length: " + stream.size());
 		return stream;
 	}
 
