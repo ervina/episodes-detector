@@ -10,6 +10,7 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
@@ -65,7 +66,7 @@ public class StreamGenerator {
 						firstCtx = null;
 						superCtx = null;
 						elementCtx = EventGenerator.elementContext(binding);
-
+						
 						ITypeBinding typeBinding = binding.getDeclaringClass()
 								.getTypeDeclaration();
 						getSuper(typeBinding, binding.getMethodDeclaration(),
@@ -85,16 +86,55 @@ public class StreamGenerator {
 					public boolean visit(ConstructorInvocation node) {
 						return super.visit(node);
 					}
-
+					
+					@Override
+					public boolean visit(ClassInstanceCreation node) {
+						return super.visit(node);
+					}
+					
 					@Override
 					public void endVisit(ConstructorInvocation node) {
 
-						IMethodBinding bindings = node
-								.resolveConstructorBinding()
-								.getMethodDeclaration();
-						addEnclosingContextIfAvailable();
-						stream.add(EventGenerator.constructor(bindings));
+						IMethodBinding mb = node.resolveConstructorBinding();
+						if (mb != null) {
+							IMethodBinding md = mb.getMethodDeclaration();
+							String sig = JavaASTUtil.buildSignature(md);
+							ITypeBinding tb = getBase(md.getDeclaringClass().getTypeDeclaration(), md, sig);
+							String type = tb.getName();
+							
+							addEnclosingContextIfAvailable();
+							stream.add(EventGenerator.constructor(tb));
+						} else {
+							try {
+								throw new Exception("Unresolved type");
+							} catch (Exception e) {
+								System.out.println(node.toString());
+								e.printStackTrace();
+							}
+						}
+						super.endVisit(node);
+					}
+					
+					@Override
+					public void endVisit(ClassInstanceCreation node) {
 
+						IMethodBinding mb = node.resolveConstructorBinding();
+						if (mb != null) {
+							IMethodBinding md = mb.getMethodDeclaration();
+							String sig = JavaASTUtil.buildSignature(md);
+							ITypeBinding tb = getBase(md.getDeclaringClass().getTypeDeclaration(), md, sig);
+							String type = tb.getName();
+							
+							addEnclosingContextIfAvailable();
+							stream.add(EventGenerator.constructor(tb));
+						} else {
+							try {
+								throw new Exception("Unresolved type");
+							} catch (Exception e) {
+								System.out.println(node.toString());
+								e.printStackTrace();
+							}
+						}
 						super.endVisit(node);
 					}
 
@@ -103,19 +143,19 @@ public class StreamGenerator {
 
 						ASTNode parent = node.getParent();
 						
-						if (node.resolveMethodBinding() != null) {
-							IMethodBinding mb = node.resolveMethodBinding().getMethodDeclaration();
-							String sig = JavaASTUtil.buildSignature(mb);
-							ITypeBinding tb = getBase(mb.getDeclaringClass().getTypeDeclaration(), mb, sig);
+						IMethodBinding mb = node.resolveMethodBinding();
+						
+						if (mb != null) {
+							IMethodBinding md = mb.getMethodDeclaration();
+							String sig = JavaASTUtil.buildSignature(md);
+							ITypeBinding tb = getBase(md.getDeclaringClass().getTypeDeclaration(), md, sig);
 							String type = tb.getName();
 							
-							IMethodBinding binding = node.resolveMethodBinding();
-							IMethodBinding methodBinding = binding.getMethodDeclaration();
 							addEnclosingContextIfAvailable();
-							stream.add(EventGenerator.invocation(methodBinding));
+							stream.add(EventGenerator.invocation(tb, md));
 						} else {
 							try {
-								throw new Exception("Unresolved type path");
+								throw new Exception("Unresolved type");
 							} catch (Exception e) {
 								System.out.println(node.toString());
 								e.printStackTrace();

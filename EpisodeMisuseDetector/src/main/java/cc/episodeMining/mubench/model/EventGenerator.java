@@ -49,35 +49,23 @@ public class EventGenerator {
 		return event;
 	}
 
-	public static Event invocation(IMethodBinding binding) {
-
-		String type = getType(binding);
+	public static Event invocation(ITypeBinding type, IMethodBinding binding) {
 		String method = getMethod(binding);
-
+		
 		Event event = new Event();
 		event.setKind(EventKind.INVOCATION);
-		event.setMethod(getMethodName(type, method));
-
-		return event;
-	}
-	
-	public static Event invocation(String type, String method) {
-		Event event = new Event();
-		event.setKind(EventKind.INVOCATION);
-		event.setMethod(getMethodName(type, method));
+		event.setMethod(getMethodName(type.getName(), method));
 		
 		return event;
 	}
-
-	public static Event constructor(IMethodBinding binding) {
-
-		String type = getType(binding);
-		String method = ".ctor()";
-
+	
+	public static Event constructor(ITypeBinding type) {
+		String method = ".ctor";
+		
 		Event event = new Event();
-		event.setKind(EventKind.INVOCATION);
-		event.setMethod(getMethodName(type, method));
-
+		event.setKind(EventKind.CONSTRUCTOR);
+		event.setMethod(getMethodName(type.getName(), method));
+		
 		return event;
 	}
 
