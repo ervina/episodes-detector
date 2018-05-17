@@ -28,7 +28,7 @@ public class EpisodesToPatternTransformer {
             if (!fact.isRelation()) {
                 Event event = mapping.get(fact.getFactID());
                 IMethodName method = event.getMethod();
-                MethodCallNode node = new MethodCallNode(method.getDeclaringType().getFullName(), method.getName() + "()");
+                MethodCallNode node = TransformerUtils.createCallNode(method);
                 pattern.addVertex(node);
                 factIdToNodeMap.put(fact.getFactID(), node);
             } else {
