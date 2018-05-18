@@ -12,7 +12,6 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
@@ -82,37 +81,10 @@ public class StreamGenerator {
 						return super.visit(node);
 					}
 
-					@Override
-					public boolean visit(ConstructorInvocation node) {
-						return super.visit(node);
-					}
 					
 					@Override
 					public boolean visit(ClassInstanceCreation node) {
 						return super.visit(node);
-					}
-					
-					@Override
-					public void endVisit(ConstructorInvocation node) {
-
-						IMethodBinding mb = node.resolveConstructorBinding();
-						if (mb != null) {
-							IMethodBinding md = mb.getMethodDeclaration();
-							String sig = JavaASTUtil.buildSignature(md);
-							ITypeBinding tb = getBase(md.getDeclaringClass().getTypeDeclaration(), md, sig);
-							String type = tb.getName();
-							
-							addEnclosingContextIfAvailable();
-							stream.add(EventGenerator.constructor(tb));
-						} else {
-							try {
-								throw new Exception("Unresolved type");
-							} catch (Exception e) {
-								System.out.println(node.toString());
-								e.printStackTrace();
-							}
-						}
-						super.endVisit(node);
 					}
 					
 					@Override
