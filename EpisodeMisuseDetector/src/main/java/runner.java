@@ -3,7 +3,6 @@ import java.io.IOException;
 import java.util.*;
 
 import cc.episodeMining.mudetect.EpisodesToPatternTransformer;
-import cc.episodeMining.mudetect.FilterAndRankingStrategy;
 import cc.episodeMining.mudetect.TraceToAUGTransformer;
 import cc.kave.episodes.model.Episode;
 import de.tu_darmstadt.stg.mubench.DefaultFilterAndRankingStrategy;
@@ -16,7 +15,6 @@ import de.tu_darmstadt.stg.mudetect.mining.MinPatternActionsModel;
 import de.tu_darmstadt.stg.mudetect.model.Violation;
 import de.tu_darmstadt.stg.mudetect.overlapsfinder.AlternativeMappingsOverlapsFinder;
 import de.tu_darmstadt.stg.mudetect.ranking.*;
-import edu.iastate.cs.mudetect.mining.MinPatternActionsModel;
 import org.apache.commons.io.FileUtils;
 
 import cc.episodeMining.data.StreamGenerator;

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import edu.iastate.cs.egroum.utils.JavaASTUtil;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -24,6 +23,8 @@ import cc.episodeMining.mubench.model.EventGenerator;
 import cc.kave.episodes.model.events.Event;
 
 import com.google.common.collect.Lists;
+
+import de.tu_darmstadt.stg.mudetect.utils.JavaASTUtil;
 
 public class StreamGenerator {
 
