@@ -1,40 +1,34 @@
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
+import cc.episodeMining.data.StreamGenerator;
 import cc.episodeMining.mudetect.EpisodesToPatternTransformer;
 import cc.episodeMining.mudetect.TraceToAUGTransformer;
-import cc.kave.episodes.model.Episode;
-import de.tu_darmstadt.stg.mubench.DefaultFilterAndRankingStrategy;
-import de.tu_darmstadt.stg.mubench.ViolationUtils;
-import de.tu_darmstadt.stg.mudetect.MissingElementViolationPredicate;
-import de.tu_darmstadt.stg.mudetect.MuDetect;
-import de.tu_darmstadt.stg.mudetect.aug.model.APIUsageExample;
-import de.tu_darmstadt.stg.mudetect.aug.model.patterns.APIUsagePattern;
-import de.tu_darmstadt.stg.mudetect.mining.MinPatternActionsModel;
-import de.tu_darmstadt.stg.mudetect.model.Violation;
-import de.tu_darmstadt.stg.mudetect.overlapsfinder.AlternativeMappingsOverlapsFinder;
-import de.tu_darmstadt.stg.mudetect.ranking.*;
-import org.apache.commons.io.FileUtils;
-
-import cc.episodeMining.data.StreamGenerator;
 import cc.kave.commons.utils.json.JsonUtils;
-import cc.kave.episodes.io.EpisodeParser;
-import cc.kave.episodes.mining.patterns.PatternFilter;
+import cc.kave.episodes.model.Episode;
 import cc.kave.episodes.model.EventStream;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
-import cc.kave.episodes.postprocessor.TransClosedEpisodes;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
+import de.tu_darmstadt.stg.mubench.DefaultFilterAndRankingStrategy;
+import de.tu_darmstadt.stg.mubench.ViolationUtils;
 import de.tu_darmstadt.stg.mubench.cli.DetectionStrategy;
 import de.tu_darmstadt.stg.mubench.cli.DetectorArgs;
 import de.tu_darmstadt.stg.mubench.cli.DetectorOutput;
 import de.tu_darmstadt.stg.mubench.cli.DetectorOutput.Builder;
 import de.tu_darmstadt.stg.mubench.cli.MuBenchRunner;
+import de.tu_darmstadt.stg.mudetect.MissingElementViolationPredicate;
+import de.tu_darmstadt.stg.mudetect.MuDetect;
+import de.tu_darmstadt.stg.mudetect.aug.model.APIUsageExample;
+import de.tu_darmstadt.stg.mudetect.aug.model.patterns.APIUsagePattern;
+import de.tu_darmstadt.stg.mudetect.model.Violation;
+import de.tu_darmstadt.stg.mudetect.overlapsfinder.AlternativeMappingsOverlapsFinder;
+import de.tu_darmstadt.stg.mudetect.ranking.*;
+import edu.iastate.cs.mudetect.mining.MinPatternActionsModel;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 public class runner {
 
