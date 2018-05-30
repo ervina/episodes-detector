@@ -82,7 +82,7 @@ public class EpisodesToPatternTransformerTest {
         File data = new File(getClass().getResource("/episodes").getFile().replaceAll("%20", " "));
 
         Map<Integer, Set<Episode>> episodesByNumNodes = new EpisodeParser(data, new FileReader()).parser(1);
-        EventStreamIo streamIo = new EventStreamIo(new File(data, "mapping.txt"));
+        EventStreamIo streamIo = new EventStreamIo(data);
         List<Event> mapping = streamIo.readMapping(1);
         EpisodesToPatternTransformer transformer = new EpisodesToPatternTransformer();
 
