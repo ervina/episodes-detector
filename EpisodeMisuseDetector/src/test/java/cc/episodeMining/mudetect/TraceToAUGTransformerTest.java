@@ -1,6 +1,7 @@
 package cc.episodeMining.mudetect;
 
-import cc.episodeMining.data.StreamGenerator;
+import cc.episodeMining.data.EventStreamGenerator;
+import cc.episodeMining.data.SequenceGenerator;
 import cc.kave.episodes.model.events.Event;
 import de.tu_darmstadt.stg.mudetect.aug.model.APIUsageExample;
 import org.apache.commons.io.FileUtils;
@@ -129,8 +130,7 @@ public class TraceToAUGTransformerTest {
 
     private APIUsageExample generateAUG(File sourceFile) {
         String[] classpath = new String[0];
-        List<Event> trace = new StreamGenerator().generateMethodTraces(sourceFile, classpath);
+        List<Event> trace = new SequenceGenerator().generateMethodTraces(sourceFile, classpath);
         return TraceToAUGTransformer.transform(trace);
     }
-
 }
