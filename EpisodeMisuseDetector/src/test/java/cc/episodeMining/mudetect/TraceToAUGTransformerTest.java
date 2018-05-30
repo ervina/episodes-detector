@@ -77,7 +77,7 @@ public class TraceToAUGTransformerTest {
 
         APIUsageExample aug = generateAUG(code);
 
-        assertThat(aug.getLocation().getMethodSignature(), is("hashCode()"));
+        assertThat(aug.getLocation().getMethodSignature(), is("m()"));
     }
 
     @Test
