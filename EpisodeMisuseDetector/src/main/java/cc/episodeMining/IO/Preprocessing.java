@@ -1,15 +1,15 @@
 package cc.episodeMining.IO;
 
-import cc.episodeMining.data.StreamGenerator;
+import cc.episodeMining.data.SequenceGenerator;
 
 import com.google.inject.Inject;
 
 public class Preprocessing {
 
-	private StreamGenerator generator;
+	private SequenceGenerator generator;
 	
 	@Inject
-	public Preprocessing(StreamGenerator streamGenerator) {
+	public Preprocessing(SequenceGenerator streamGenerator) {
 		this.generator = streamGenerator;
 	}
 }

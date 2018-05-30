@@ -11,7 +11,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import cc.episodeMining.data.StreamGenerator;
+import cc.episodeMining.data.SequenceGenerator;
 import cc.kave.commons.model.naming.Names;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
@@ -20,11 +20,11 @@ import com.google.common.collect.Lists;
 
 public class StreamGeneratorTest {
 
-	private StreamGenerator sut;
+	private SequenceGenerator sut;
 	
 	@Before
 	public void setup() {
-		sut = new StreamGenerator();
+		sut = new SequenceGenerator();
 	}
 	
 	@Ignore

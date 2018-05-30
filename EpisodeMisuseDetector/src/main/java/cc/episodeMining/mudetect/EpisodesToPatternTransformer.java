@@ -1,5 +1,11 @@
 package cc.episodeMining.mudetect;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import cc.kave.commons.model.naming.codeelements.IMethodName;
 import cc.kave.episodes.model.Episode;
 import cc.kave.episodes.model.events.Event;
@@ -9,8 +15,6 @@ import de.tu_darmstadt.stg.mudetect.aug.model.Node;
 import de.tu_darmstadt.stg.mudetect.aug.model.actions.MethodCallNode;
 import de.tu_darmstadt.stg.mudetect.aug.model.controlflow.OrderEdge;
 import de.tu_darmstadt.stg.mudetect.aug.model.patterns.APIUsagePattern;
-
-import java.util.*;
 
 public class EpisodesToPatternTransformer {
     public Set<APIUsagePattern> transform(Set<Episode> episodes, List<Event> mapping) {
