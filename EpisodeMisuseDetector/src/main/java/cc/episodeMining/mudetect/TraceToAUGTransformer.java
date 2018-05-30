@@ -16,13 +16,16 @@ import static cc.kave.episodes.model.events.EventKind.METHOD_DECLARATION;
 
 public class TraceToAUGTransformer {
     public static APIUsageExample transform(List<Event> trace) {
-        String file = "get the trace's origin file";
-        String methodSignature = "get the trace's origin method";
 
         Set<Node> predecessors = new HashSet<>();
-        APIUsageExample aug = new APIUsageExample(new Location("project", file, methodSignature));
+        APIUsageExample aug = null;
         for (Event event : trace) {
-            if (event.getKind() == INVOCATION) {
+            if (event.getKind() == METHOD_DECLARATION) {
+                // TODO get the actual file location
+                String file = "TODO: get the trace's origin file";
+                String methodSignature = TransformerUtils.getMethodSignature(event.getMethod());
+                aug = new APIUsageExample(new Location(":SomeProject:", file, methodSignature));
+            } else if (event.getKind() == INVOCATION) {
                 MethodCallNode node = TransformerUtils.createCallNode(event.getMethod());
                 aug.addVertex(node);
 

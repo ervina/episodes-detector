@@ -65,6 +65,62 @@ public class TraceToAUGTransformerTest {
         assertThat(aug, hasOrderEdge(methodCall("Object", "hashCode()"), methodCall("Object", "toString()")));
     }
 
+    @Test
+    public void capturesLocationSignature() throws IOException {
+        String code = "class C {\n" +
+                "  void m() {\n" +
+                "    Object o = new Object();\n" +
+                "    o.hashCode();\n" +
+                "  }\n" +
+                "}";
+
+        APIUsageExample aug = generateAUG(code);
+
+        assertThat(aug.getLocation().getMethodSignature(), is("hashCode()"));
+    }
+
+    @Test
+    public void capturesLocationSignatureWithParameter() throws IOException {
+        String code = "class C {\n" +
+                "  void m(Object o) {\n" +
+                "    o.hashCode();\n" +
+                "  }\n" +
+                "}";
+
+        APIUsageExample aug = generateAUG(code);
+
+        assertThat(aug.getLocation().getMethodSignature(), is("m(Object)"));
+    }
+
+    @Test
+    public void capturesLocationSignatureWithParameters() throws IOException {
+        String code = "class C {\n" +
+                "  void m(Object o, int i) {\n" +
+                "    o.hashCode();\n" +
+                "  }\n" +
+                "}";
+
+        APIUsageExample aug = generateAUG(code);
+
+        assertThat(aug.getLocation().getMethodSignature(), is("m(Object, int)"));
+    }
+
+    @Test
+    public void capturesLocationFilePath() throws IOException {
+        String code = "class C {\n" +
+                "  void m(Object o) {\n" +
+                "    o.hashCode();\n" +
+                "  }\n" +
+                "}";
+
+        File sourceFile = tmpFolder.newFile("test.java");
+        FileUtils.writeStringToFile(sourceFile, code);
+
+        APIUsageExample aug = generateAUG(sourceFile);
+
+        assertThat(aug.getLocation().getFilePath(), is(sourceFile.getAbsolutePath()));
+    }
+
     private APIUsageExample generateAUG(String code) throws IOException {
         File sourceFile = tmpFolder.newFile("test.java");
         FileUtils.writeStringToFile(sourceFile, code);

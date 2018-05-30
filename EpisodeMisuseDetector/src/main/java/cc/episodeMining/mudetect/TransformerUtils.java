@@ -16,7 +16,7 @@ class TransformerUtils {
         return typeName.getFullName();
     }
 
-    private static String getMethodSignature(IMethodName method) {
+    public static String getMethodSignature(IMethodName method) {
         StringBuilder methodSignature = new StringBuilder(method.getName()).append("(");
         for (Iterator<IParameterName> params = method.getParameters().iterator(); params.hasNext(); ) {
             IParameterName param = params.next();
