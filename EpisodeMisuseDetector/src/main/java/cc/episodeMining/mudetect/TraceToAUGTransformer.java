@@ -11,6 +11,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static cc.kave.episodes.model.events.EventKind.INVOCATION;
+import static cc.kave.episodes.model.events.EventKind.METHOD_DECLARATION;
+
 public class TraceToAUGTransformer {
     public static APIUsageExample transform(List<Event> trace) {
         String file = "get the trace's origin file";
@@ -19,14 +22,16 @@ public class TraceToAUGTransformer {
         Set<Node> predecessors = new HashSet<>();
         APIUsageExample aug = new APIUsageExample(new Location("project", file, methodSignature));
         for (Event event : trace) {
-            MethodCallNode node = TransformerUtils.createCallNode(event.getMethod());
-            aug.addVertex(node);
+            if (event.getKind() == INVOCATION) {
+                MethodCallNode node = TransformerUtils.createCallNode(event.getMethod());
+                aug.addVertex(node);
 
-            for (Node predecessor : predecessors) {
-                aug.addEdge(predecessor, node, new OrderEdge(predecessor, node));
+                for (Node predecessor : predecessors) {
+                    aug.addEdge(predecessor, node, new OrderEdge(predecessor, node));
+                }
+
+                predecessors.add(node);
             }
-
-            predecessors.add(node);
         }
         return aug;
     }
