@@ -80,7 +80,7 @@ public class EventGenerator {
 	}
 	
 	private static IMethodName getMethodName(String type, String method) {
-		IMethodName methodName = Names.newMethod(type + "." + method + "()");
+		IMethodName methodName = Names.newMethod("[?] " + "[" + type + "]" + "." + method + "()");
 		return methodName;
 	}
 }
