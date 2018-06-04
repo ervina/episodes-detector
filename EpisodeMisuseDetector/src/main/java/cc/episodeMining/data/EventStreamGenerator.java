@@ -8,9 +8,9 @@ import org.apache.commons.io.FileUtils;
 
 import cc.kave.commons.utils.json.JsonUtils;
 import cc.kave.episodes.model.EventStream;
+import cc.kave.episodes.model.Triplet;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
-import cc.recommenders.datastructures.Tuple;
 
 import com.google.common.collect.Lists;
 
@@ -22,17 +22,22 @@ public class EventStreamGenerator {
 		this.folder = dir;
 	}
 
-	public List<Tuple<Event, List<Event>>> mdEventsMapper(List<Event> events,
-			int frequency) {
-		List<Tuple<Event, List<Event>>> mapper = Lists.newLinkedList();
+	public List<Triplet<String, Event, List<Event>>> createSrcMapper(
+			List<Event> events, int frequency) {
+		List<Triplet<String, Event, List<Event>>> srcMapper = Lists
+				.newLinkedList();
 
+		String source = null;
 		Event md = null;
 		List<Event> method = Lists.newLinkedList();
 
 		for (Event e : events) {
-			if (e.getKind() == EventKind.METHOD_DECLARATION) {
-				if ((md != null) && (method.size() > 1)) {
-					mapper.add(Tuple.newTuple(md, method));
+			if (e.getKind() == EventKind.SOURCE_FILE_PATH) {
+				source = e.getMethod().getFullName();
+			} else if (e.getKind() == EventKind.METHOD_DECLARATION) {
+				if (method.size() > 1) {
+					srcMapper.add(new Triplet<String, Event, List<Event>>(source,
+							md, method));
 				}
 				md = e;
 				method = Lists.newLinkedList();
@@ -40,16 +45,16 @@ public class EventStreamGenerator {
 				method.add(e);
 			}
 		}
-		JsonUtils.toJson(mapper, getStreamObjectPath(frequency));
-		return mapper;
+		JsonUtils.toJson(srcMapper, getStreamObjectPath(frequency));
+		return srcMapper;
 	}
 
-	public void eventStream(List<Tuple<Event, List<Event>>> stream,
+	public void eventStream(List<Triplet<String, Event, List<Event>>> stream,
 			int frequency) throws IOException {
 		EventStream es = new EventStream();
 
-		for (Tuple<Event, List<Event>> tuple : stream) {
-			for (Event event : tuple.getSecond()) {
+		for (Triplet<String, Event, List<Event>> triplet : stream) {
+			for (Event event : triplet.getThird()) {
 				es.addEvent(event);
 			}
 			es.increaseTimeout();

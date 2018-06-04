@@ -55,7 +55,8 @@ public class SequenceGenerator {
 //									.getName().getFullyQualifiedName()
 //									+ ".");
 //				}
-
+				stream.add(EventGenerator.sourcePath(sourceFilePath));
+				
 				cu.accept(new ASTVisitor() {
 					@Override
 					public boolean visit(MethodDeclaration node) {

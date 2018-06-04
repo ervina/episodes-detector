@@ -13,11 +13,12 @@ public class EventsFilter {
 
 	public List<Event> frequent(List<Event> sequence, int frequency) {
 		List<Event> output = Lists.newLinkedList();
-		
+
 		Map<Event, Integer> eventsCounter = counter(sequence);
-		
+
 		for (Event event : sequence) {
-			if (event.getKind() != EventKind.METHOD_DECLARATION) {
+			if ((event.getKind() != EventKind.SOURCE_FILE_PATH)
+					&& (event.getKind() != EventKind.METHOD_DECLARATION)) {
 				if (eventsCounter.get(event) >= frequency) {
 					output.add(event);
 				}
@@ -27,7 +28,7 @@ public class EventsFilter {
 		}
 		return output;
 	}
-	
+
 	private Map<Event, Integer> counter(List<Event> events) {
 		Map<Event, Integer> results = Maps.newLinkedHashMap();
 

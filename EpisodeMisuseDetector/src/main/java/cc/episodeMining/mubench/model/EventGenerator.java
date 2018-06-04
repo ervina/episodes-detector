@@ -10,6 +10,14 @@ import cc.kave.episodes.model.events.EventKind;
 
 public class EventGenerator {
 
+	public static Event sourcePath(String source) {
+		Event event = new Event();
+		event.setKind(EventKind.SOURCE_FILE_PATH);
+		event.setMethod(Names.newMethod("[?] [?]." + source + "()"));
+		
+		return event;
+	}
+	
 	public static Event elementContext(IMethodBinding binding) {
 
 		// ITypeBinding classDeclaration = binding.getDeclaringClass();
