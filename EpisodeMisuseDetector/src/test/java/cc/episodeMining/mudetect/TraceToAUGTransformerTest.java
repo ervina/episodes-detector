@@ -6,6 +6,7 @@ import cc.kave.episodes.model.Triplet;
 import cc.kave.episodes.model.events.Event;
 import de.tu_darmstadt.stg.mudetect.aug.model.APIUsageExample;
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -82,6 +83,7 @@ public class TraceToAUGTransformerTest {
         assertThat(aug.getLocation().getMethodSignature(), is("m()"));
     }
 
+    @Ignore("We currently ignore parameters. This will make MUBench's filtering less precise, but should not result in any false negatives.")
     @Test
     public void capturesLocationSignatureWithParameter() throws IOException {
         String code = "class C {\n" +
@@ -95,6 +97,7 @@ public class TraceToAUGTransformerTest {
         assertThat(aug.getLocation().getMethodSignature(), is("m(Object)"));
     }
 
+    @Ignore("We currently ignore parameters. This will make MUBench's filtering less precise, but should not result in any false negatives.")
     @Test
     public void capturesLocationSignatureWithParameters() throws IOException {
         String code = "class C {\n" +
