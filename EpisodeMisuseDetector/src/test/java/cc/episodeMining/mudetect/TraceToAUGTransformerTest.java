@@ -2,6 +2,7 @@ package cc.episodeMining.mudetect;
 
 import cc.episodeMining.data.EventStreamGenerator;
 import cc.episodeMining.data.SequenceGenerator;
+import cc.kave.episodes.model.Triplet;
 import cc.kave.episodes.model.events.Event;
 import de.tu_darmstadt.stg.mudetect.aug.model.APIUsageExample;
 import org.apache.commons.io.FileUtils;
@@ -16,6 +17,7 @@ import java.util.List;
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasNode;
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasOrderEdge;
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.NodeMatchers.methodCall;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -128,9 +130,14 @@ public class TraceToAUGTransformerTest {
         return generateAUG(sourceFile);
     }
 
-    private APIUsageExample generateAUG(File sourceFile) {
+    private APIUsageExample generateAUG(File sourceFile) throws IOException {
         String[] classpath = new String[0];
         List<Event> trace = new SequenceGenerator().generateMethodTraces(sourceFile, classpath);
-        return TraceToAUGTransformer.transform(trace);
+        EventStreamGenerator eventStreamGenerator = new EventStreamGenerator(tmpFolder.newFolder());
+        List<Triplet<String, Event, List<Event>>> srcMapping = eventStreamGenerator.createSrcMapper(trace, 42);
+
+        assertThat(srcMapping, hasSize(1));
+
+        return TraceToAUGTransformer.transform(srcMapping.get(0));
     }
 }

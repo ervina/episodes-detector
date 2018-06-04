@@ -100,10 +100,7 @@ public class runner {
 			Set<APIUsagePattern> augPatterns = new EpisodesToPatternTransformer()
 					.transform(setOfPatterns, mapping);
 
-			// Collection<APIUsageExample> targets = loadTargetAUGs(
-			// args.getTargetSrcPaths(), args.getDependencyClassPath());
-			List<Triplet<String, Event, APIUsageExample>> targets = loadTargetAUGs(
-					args.getTargetSrcPaths(), args.getDependencyClassPath());
+			Collection<APIUsageExample> targets = loadTargetAUGs(args.getTargetSrcPaths(), args.getDependencyClassPath());
 			MuDetect detection = new MuDetect(
 					new MinPatternActionsModel(() -> augPatterns, 2),
 					new AlternativeMappingsOverlapsFinder(
@@ -130,22 +127,13 @@ public class runner {
 			return output;
 		}
 
-		private List<Triplet<String, Event, APIUsageExample>> loadTargetAUGs(
+		private Collection<APIUsageExample> loadTargetAUGs(
 				String[] srcPaths, String[] classpath) throws IOException {
-			// TODO it is weird that building traces returns a List<Event>,
-			// isn't a List<Event> _one_ trace and the type
-			// should be Collection<List<Events>>? I'm assuming this for the
-			// subsequent implementation. -Sven
-			List<Triplet<String, Event, List<Event>>> traces = parser(srcPaths,
-					classpath);
+			List<Triplet<String, Event, List<Event>>> traces = parser(srcPaths, classpath);
 
-			// Collection<APIUsageExample> targets = new ArrayList<>();
-			List<Triplet<String, Event, APIUsageExample>> targets = new ArrayList<>();
+			Collection<APIUsageExample> targets = new ArrayList<>();
 			for (Triplet<String, Event, List<Event>> trace : traces) {
-				// targets.add(TraceToAUGTransformer.transform(trace));
-				targets.add(new Triplet<String, Event, APIUsageExample>(trace
-						.getFirst(), trace.getSecond(), TraceToAUGTransformer
-						.transform(trace.getThird())));
+				targets.add(TraceToAUGTransformer.transform(trace.getFirst(), trace.getSecond(), trace.getThird()));
 			}
 			return targets;
 		}
