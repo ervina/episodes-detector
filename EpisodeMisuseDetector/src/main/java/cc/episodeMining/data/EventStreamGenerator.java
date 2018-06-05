@@ -35,7 +35,7 @@ public class EventStreamGenerator {
 			if (e.getKind() == EventKind.SOURCE_FILE_PATH) {
 				source = e.getMethod().getFullName();
 			} else if (e.getKind() == EventKind.METHOD_DECLARATION) {
-				if (method.size() > 1) {
+				if (!method.isEmpty()) {
 					srcMapper.add(new Triplet<String, Event, List<Event>>(source,
 							md, method));
 				}
@@ -44,6 +44,9 @@ public class EventStreamGenerator {
 			} else {
 				method.add(e);
 			}
+		}
+		if (!method.isEmpty()) {
+			srcMapper.add(new Triplet<String, Event, List<Event>>(source, md, method));
 		}
 		JsonUtils.toJson(srcMapper, getStreamObjectPath(frequency));
 		return srcMapper;
