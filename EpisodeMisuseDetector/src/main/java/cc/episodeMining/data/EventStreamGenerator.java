@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
+import cc.episodeMining.mubench.model.EventGenerator;
+import cc.kave.commons.model.naming.Names;
 import cc.kave.commons.utils.json.JsonUtils;
 import cc.kave.episodes.model.EventStream;
 import cc.kave.episodes.model.Triplet;
@@ -36,6 +38,9 @@ public class EventStreamGenerator {
 				source = e.getMethod().getFullName();
 			} else if (e.getKind() == EventKind.METHOD_DECLARATION) {
 				if (!method.isEmpty()) {
+					if (md == null) {
+						md = EventGenerator.sourcePath(source);
+					}
 					srcMapper.add(new Triplet<String, Event, List<Event>>(source,
 							md, method));
 				}
