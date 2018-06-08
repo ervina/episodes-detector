@@ -15,6 +15,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 
@@ -86,6 +87,12 @@ public class SequenceGenerator {
 					
 					@Override
 					public boolean visit(ClassInstanceCreation node) {
+						return super.visit(node);
+					}
+					
+					@Override
+					public boolean visit(Initializer node) {
+						System.out.println("test");
 						return super.visit(node);
 					}
 					

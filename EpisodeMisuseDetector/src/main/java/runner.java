@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +30,7 @@ import cc.recommenders.io.Logger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import de.tu_darmstadt.stg.mubench.DataEdgeTypePriorityOrder;
 import de.tu_darmstadt.stg.mubench.DefaultFilterAndRankingStrategy;
 import de.tu_darmstadt.stg.mubench.ViolationUtils;
 import de.tu_darmstadt.stg.mubench.cli.DetectionStrategy;
@@ -37,8 +39,21 @@ import de.tu_darmstadt.stg.mubench.cli.DetectorOutput;
 import de.tu_darmstadt.stg.mubench.cli.MuBenchRunner;
 import de.tu_darmstadt.stg.mudetect.MissingElementViolationPredicate;
 import de.tu_darmstadt.stg.mudetect.MuDetect;
+import de.tu_darmstadt.stg.mudetect.VeryUnspecificReceiverTypePredicate;
 import de.tu_darmstadt.stg.mudetect.aug.model.APIUsageExample;
+import de.tu_darmstadt.stg.mudetect.aug.model.controlflow.ContainsEdge;
+import de.tu_darmstadt.stg.mudetect.aug.model.controlflow.OrderEdge;
+import de.tu_darmstadt.stg.mudetect.aug.model.controlflow.ThrowEdge;
+import de.tu_darmstadt.stg.mudetect.aug.model.dataflow.DefinitionEdge;
+import de.tu_darmstadt.stg.mudetect.aug.model.dataflow.ParameterEdge;
+import de.tu_darmstadt.stg.mudetect.aug.model.dataflow.ReceiverEdge;
 import de.tu_darmstadt.stg.mudetect.aug.model.patterns.APIUsagePattern;
+import de.tu_darmstadt.stg.mudetect.aug.visitors.AUGLabelProvider;
+import de.tu_darmstadt.stg.mudetect.aug.visitors.BaseAUGLabelProvider;
+import de.tu_darmstadt.stg.mudetect.matcher.AllDataNodesSameLabelProvider;
+import de.tu_darmstadt.stg.mudetect.matcher.EquallyLabelledEdgeMatcher;
+import de.tu_darmstadt.stg.mudetect.matcher.EquallyLabelledNodeMatcher;
+import de.tu_darmstadt.stg.mudetect.matcher.SelAndRepSameLabelProvider;
 import de.tu_darmstadt.stg.mudetect.model.Violation;
 import de.tu_darmstadt.stg.mudetect.overlapsfinder.AlternativeMappingsOverlapsFinder;
 import de.tu_darmstadt.stg.mudetect.ranking.ConstantNodeWeightFunction;
@@ -47,6 +62,7 @@ import de.tu_darmstadt.stg.mudetect.ranking.PatternSupportWeightFunction;
 import de.tu_darmstadt.stg.mudetect.ranking.ProductWeightFunction;
 import de.tu_darmstadt.stg.mudetect.ranking.ViolationSupportWeightFunction;
 import de.tu_darmstadt.stg.mudetect.ranking.WeightRankingStrategy;
+import edu.iastate.cs.mudetect.mining.Configuration;
 import edu.iastate.cs.mudetect.mining.MinPatternActionsModel;
 
 public class runner {
@@ -101,10 +117,19 @@ public class runner {
 					.transform(setOfPatterns, mapping);
 
 			Collection<APIUsageExample> targets = loadTargetAUGs(args.getTargetSrcPaths(), args.getDependencyClassPath());
+			AUGLabelProvider labelProvider = new BaseAUGLabelProvider();
 			MuDetect detection = new MuDetect(
 					new MinPatternActionsModel(() -> augPatterns, 2),
 					new AlternativeMappingsOverlapsFinder(
-							new AlternativeMappingsOverlapsFinder.Config()),
+							new AlternativeMappingsOverlapsFinder.Config() {
+								{
+									isStartNode = super.isStartNode.and(new VeryUnspecificReceiverTypePredicate().negate());
+									nodeMatcher = new EquallyLabelledNodeMatcher(labelProvider);
+									edgeMatcher = new EquallyLabelledEdgeMatcher(labelProvider);
+									edgeOrder = new DataEdgeTypePriorityOrder();
+									extensionEdgeTypes = new HashSet<>(Arrays.asList(OrderEdge.class));
+								}
+							}),
 					new MissingElementViolationPredicate(),
 					new DefaultFilterAndRankingStrategy(
 							new WeightRankingStrategy(
