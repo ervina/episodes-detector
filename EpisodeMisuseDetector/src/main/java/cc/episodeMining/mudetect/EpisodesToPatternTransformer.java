@@ -48,8 +48,43 @@ public class EpisodesToPatternTransformer {
 
 		if (connectedFacts.isEmpty()) {
 			generatedEpisodes.addAll(generateEpisodes(episode, discFacts));
+		} else {
+			generatedEpisodes.addAll(generate(episode, connectedFacts,
+					discFacts));
 		}
 		return generatedEpisodes;
+	}
+
+	private Set<Episode> generate(Episode episode, List<Set<Fact>> connFacts,
+			List<Fact> discFacts) {
+		Set<Episode> allEpisodes = Sets.newLinkedHashSet();
+		int maxIdx = connFacts.size() - 1;
+
+		for (int idx = 0; idx < connFacts.size(); idx++) {
+			Set<Fact> relations = Sets.newLinkedHashSet();
+			for (Fact fact : discFacts) {
+				if (idx == 0) {
+					for (Fact exist : connFacts.get(idx + 1)) {
+						relations.add(new Fact(fact, exist));
+					}
+				}
+				if ((idx > 0) && (idx < maxIdx)) {
+					for (Fact exist : connFacts.get(idx - 1)) {
+						relations.add(new Fact(exist, fact));
+					}
+					for (Fact exist : connFacts.get(idx + 1)) {
+						relations.add(new Fact(fact, exist));
+					}
+				}
+				if (idx == maxIdx) {
+					for (Fact exist : connFacts.get(idx - 1)) {
+						relations.add(new Fact(exist, fact));
+					}
+				}
+			}
+			allEpisodes.add(createEpisode(episode, relations));
+		}
+		return allEpisodes;
 	}
 
 	private List<Fact> convertToList(Set<Fact> set) {
@@ -85,8 +120,8 @@ public class EpisodesToPatternTransformer {
 		newEpisode.setFrequency(episode.getFrequency());
 		newEpisode.setEntropy(episode.getEntropy());
 
-		for (Fact event : episode.getEvents()) {
-			newEpisode.addFact(event);
+		for (Fact fact : episode.getFacts()) {
+			newEpisode.addFact(fact);
 		}
 		for (Fact relation : relations) {
 			newEpisode.addFact(relation);
