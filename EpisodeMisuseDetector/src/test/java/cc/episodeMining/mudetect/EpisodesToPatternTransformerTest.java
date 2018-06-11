@@ -101,6 +101,60 @@ public class EpisodesToPatternTransformerTest {
 	}
 
 	@Test
+	public void transformsThreeDiscEventEpisode() {
+		Fact fact0 = new Fact(0);
+		Fact fact1 = new Fact(1);
+		Fact fact2 = new Fact(1);
+		Set<Episode> episodes = new HashSet<>(
+				Collections.singletonList(createEpisode(1337, fact0, fact1,
+						fact2)));
+		List<Event> mapping = Arrays
+				.asList(createMethodCallEvent(Names
+						.newMethod("0M:[p:void] [i:Namespace.DeclaringType, a, 1].M()")),
+						createMethodCallEvent(Names
+								.newMethod("0M:[p:void] [i:Other.Type, a, 1].N()")),
+						createMethodCallEvent(Names
+								.newMethod("0M:[p:void] [i:Third.Type, a, 1].O()")));
+
+		Set<APIUsagePattern> patterns = new EpisodesToPatternTransformer()
+				.transform(episodes, mapping);
+
+		Episode episode1 = createEpisode(1337, fact0, fact1, fact2, new Fact(
+				fact0, fact1), new Fact(fact0, fact2));
+		Episode episode2 = createEpisode(1337, fact0, fact1, fact2, new Fact(
+				fact1, fact0), new Fact(fact2, fact0));
+		Episode episode3 = createEpisode(1337, fact0, fact1, fact2, new Fact(
+				fact1, fact0), new Fact(fact1, fact2));
+		Episode episode4 = createEpisode(1337, fact0, fact1, fact2, new Fact(
+				fact0, fact1), new Fact(fact2, fact1));
+		Episode episode5 = createEpisode(1337, fact0, fact1, fact2, new Fact(
+				fact2, fact0), new Fact(fact2, fact1));
+		Episode episode6 = createEpisode(1337, fact0, fact1, fact2, new Fact(
+				fact0, fact2), new Fact(fact1, fact2));
+
+		APIUsagePattern pattern1 = new EpisodesToPatternTransformer()
+				.transform(episode1, mapping);
+		APIUsagePattern pattern2 = new EpisodesToPatternTransformer()
+				.transform(episode2, mapping);
+		APIUsagePattern pattern3 = new EpisodesToPatternTransformer()
+				.transform(episode3, mapping);
+		APIUsagePattern pattern4 = new EpisodesToPatternTransformer()
+				.transform(episode4, mapping);
+		APIUsagePattern pattern5 = new EpisodesToPatternTransformer()
+				.transform(episode5, mapping);
+		APIUsagePattern pattern6 = new EpisodesToPatternTransformer()
+				.transform(episode6, mapping);
+
+		assertThat(patterns, hasSize(6));
+		assertTrue(patterns.contains(pattern1));
+		assertTrue(patterns.contains(pattern2));
+		assertTrue(patterns.contains(pattern3));
+		assertTrue(patterns.contains(pattern4));
+		assertTrue(patterns.contains(pattern5));
+		assertTrue(patterns.contains(pattern6));
+	}
+
+	@Test
 	public void keepsEpisodeFrequency() {
 		Set<Episode> episodes = new HashSet<>(
 				Collections.singletonList(createEpisode(2345890)));
