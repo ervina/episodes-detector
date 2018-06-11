@@ -67,6 +67,16 @@ public class EventGenerator {
 		return event;
 	}
 	
+	public static Event initializer(ITypeBinding type) {
+		String method = ".cctor";
+		
+		Event event = new Event();
+		event.setKind(EventKind.INITIALIZER);
+		event.setMethod(getMethodName(type.getName(), method));
+		
+		return event;
+	}
+	
 	public static Event constructor(ITypeBinding type) {
 		String method = ".ctor";
 		

@@ -18,6 +18,7 @@ import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import cc.episodeMining.mubench.model.EventGenerator;
 import cc.kave.episodes.model.events.Event;
@@ -83,7 +84,6 @@ public class SequenceGenerator {
 					public boolean visit(MethodInvocation node) {
 						return super.visit(node);
 					}
-
 					
 					@Override
 					public boolean visit(ClassInstanceCreation node) {
@@ -91,9 +91,23 @@ public class SequenceGenerator {
 					}
 					
 					@Override
+					public boolean visit(TypeDeclaration node) {
+						
+						ITypeBinding mb = node.resolveBinding();
+						// TODO Auto-generated method stub
+						return super.visit(node);
+					}
+					
+					@Override
 					public boolean visit(Initializer node) {
 						System.out.println("test");
 						return super.visit(node);
+					}
+					
+					@Override
+					public void endVisit(Initializer node) {
+						
+						super.endVisit(node);
 					}
 					
 					@Override

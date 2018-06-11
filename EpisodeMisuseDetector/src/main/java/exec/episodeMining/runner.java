@@ -1,3 +1,4 @@
+package exec.episodeMining;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,19 +42,12 @@ import de.tu_darmstadt.stg.mudetect.MissingElementViolationPredicate;
 import de.tu_darmstadt.stg.mudetect.MuDetect;
 import de.tu_darmstadt.stg.mudetect.VeryUnspecificReceiverTypePredicate;
 import de.tu_darmstadt.stg.mudetect.aug.model.APIUsageExample;
-import de.tu_darmstadt.stg.mudetect.aug.model.controlflow.ContainsEdge;
 import de.tu_darmstadt.stg.mudetect.aug.model.controlflow.OrderEdge;
-import de.tu_darmstadt.stg.mudetect.aug.model.controlflow.ThrowEdge;
-import de.tu_darmstadt.stg.mudetect.aug.model.dataflow.DefinitionEdge;
-import de.tu_darmstadt.stg.mudetect.aug.model.dataflow.ParameterEdge;
-import de.tu_darmstadt.stg.mudetect.aug.model.dataflow.ReceiverEdge;
 import de.tu_darmstadt.stg.mudetect.aug.model.patterns.APIUsagePattern;
 import de.tu_darmstadt.stg.mudetect.aug.visitors.AUGLabelProvider;
 import de.tu_darmstadt.stg.mudetect.aug.visitors.BaseAUGLabelProvider;
-import de.tu_darmstadt.stg.mudetect.matcher.AllDataNodesSameLabelProvider;
 import de.tu_darmstadt.stg.mudetect.matcher.EquallyLabelledEdgeMatcher;
 import de.tu_darmstadt.stg.mudetect.matcher.EquallyLabelledNodeMatcher;
-import de.tu_darmstadt.stg.mudetect.matcher.SelAndRepSameLabelProvider;
 import de.tu_darmstadt.stg.mudetect.model.Violation;
 import de.tu_darmstadt.stg.mudetect.overlapsfinder.AlternativeMappingsOverlapsFinder;
 import de.tu_darmstadt.stg.mudetect.ranking.ConstantNodeWeightFunction;
@@ -62,7 +56,6 @@ import de.tu_darmstadt.stg.mudetect.ranking.PatternSupportWeightFunction;
 import de.tu_darmstadt.stg.mudetect.ranking.ProductWeightFunction;
 import de.tu_darmstadt.stg.mudetect.ranking.ViolationSupportWeightFunction;
 import de.tu_darmstadt.stg.mudetect.ranking.WeightRankingStrategy;
-import edu.iastate.cs.mudetect.mining.Configuration;
 import edu.iastate.cs.mudetect.mining.MinPatternActionsModel;
 
 public class runner {
@@ -115,6 +108,7 @@ public class runner {
 			List<Event> mapping = esio.readMapping(FREQUENCY);
 			Set<APIUsagePattern> augPatterns = new EpisodesToPatternTransformer()
 					.transform(setOfPatterns, mapping);
+			System.out.println("Number of patterns of APIUsage transformer: " + augPatterns.size());
 
 			Collection<APIUsageExample> targets = loadTargetAUGs(args.getTargetSrcPaths(), args.getDependencyClassPath());
 			AUGLabelProvider labelProvider = new BaseAUGLabelProvider();
@@ -166,7 +160,6 @@ public class runner {
 		private List<Triplet<String, Event, List<Event>>> parser(
 				String[] srcPaths, String[] classpaths) throws IOException {
 			List<Event> sequences = buildMethodTraces(srcPaths, classpaths);
-			System.out.println("Number of all events: " + sequences.size());
 
 			EventsFilter ef = new EventsFilter();
 			List<Event> frequentEvents = ef.frequent(sequences, FREQUENCY);
