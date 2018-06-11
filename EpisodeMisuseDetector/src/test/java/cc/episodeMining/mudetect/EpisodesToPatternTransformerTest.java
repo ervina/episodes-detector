@@ -54,7 +54,7 @@ public class EpisodesToPatternTransformerTest {
 	}
 
 	@Test
-	public void transformsTwoDiscEventEpisode() {
+	public void encodesPartialOrderInAlternativePatternsWithExplicitOrder_TwoNodes() {
 		Fact fact0 = new Fact(0);
 		Fact fact1 = new Fact(1);
 		Set<Episode> episodes = set(createEpisode(1337, fact0, fact1));
@@ -71,7 +71,7 @@ public class EpisodesToPatternTransformerTest {
 	}
 
 	@Test
-	public void transformsThreeDiscEventEpisode() {
+	public void encodesPartialOrderInAlternativePatternsWithExplicitOrder_ThreeNodes() {
 		Fact fact0 = new Fact(0);
 		Fact fact1 = new Fact(1);
 		Fact fact2 = new Fact(2);
