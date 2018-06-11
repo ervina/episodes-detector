@@ -110,6 +110,30 @@ public class EpisodesToPatternTransformerTest {
         ));
 	}
 
+    @Test
+    public void encodesPartialOrderInAlternativePatternsWithExplicitOrder_LargerComponents() {
+        Fact fact0 = new Fact(0);
+        Fact fact1 = new Fact(1);
+        Fact fact2 = new Fact(2);
+        Set<Episode> episodes = set(createEpisode(1337, fact0, fact1, fact2, new Fact(fact0, fact1)));
+        List<Event> mapping = list(
+                createMethodCallEvent(Names.newMethod("0M:[p:void] [i:A, a, 1].A()")),
+                createMethodCallEvent(Names.newMethod("0M:[p:void] [i:B, a, 1].B()")),
+                createMethodCallEvent(Names.newMethod("0M:[p:void] [i:C, a, 1].C()")));
+
+        Set<APIUsagePattern> patterns = new EpisodesToPatternTransformer().transform(episodes, mapping);
+
+        assertThat(patterns, containsInAnyOrder(
+                both(hasOrderEdge(methodCall("A", "A()"), methodCall("B", "B()")))
+                        .and(hasOrderEdge(methodCall("A", "A()"), methodCall("C", "C()")))
+                        .and(hasOrderEdge(methodCall("B", "B()"), methodCall("C", "C()"))),
+
+                both(hasOrderEdge(methodCall("A", "A()"), methodCall("B", "B()")))
+                        .and(hasOrderEdge(methodCall("C", "C()"), methodCall("A", "A()")))
+                        .and(hasOrderEdge(methodCall("C", "C()"), methodCall("B", "B()")))
+        ));
+    }
+
 	@Test
 	public void keepsEpisodeFrequency() {
 		Set<Episode> episodes = new HashSet<>(
