@@ -1,23 +1,5 @@
 package cc.episodeMining.mudetect;
 
-import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasNodes;
-import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasOrderEdge;
-import static de.tu_darmstadt.stg.mudetect.aug.matchers.NodeMatchers.methodCall;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.junit.Test;
-
 import cc.kave.commons.model.naming.Names;
 import cc.kave.commons.model.naming.codeelements.IMethodName;
 import cc.kave.episodes.io.EpisodeParser;
@@ -27,21 +9,28 @@ import cc.kave.episodes.model.Episode;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
 import cc.kave.episodes.model.events.Fact;
-import de.tu_darmstadt.stg.mudetect.aug.model.actions.MethodCallNode;
 import de.tu_darmstadt.stg.mudetect.aug.model.patterns.APIUsagePattern;
+import org.junit.Test;
+
+import java.io.File;
+import java.util.*;
+
+import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasNodes;
+import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasOrderEdge;
+import static de.tu_darmstadt.stg.mudetect.aug.matchers.NodeMatchers.methodCall;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class EpisodesToPatternTransformerTest {
 
 	@Test
 	public void transformsOneEventEpisode() {
-		Set<Episode> episodes = new HashSet<>(
-				Collections.singletonList(createEpisode(42, new Fact(0))));
-		List<Event> mapping = Collections
-				.singletonList(createMethodCallEvent(Names
-						.newMethod("0M:[p:void] [i:Namespace.DeclaringType, a, 1].M()")));
+		Set<Episode> episodes = set(createEpisode(42, new Fact(0)));
+		List<Event> mapping = list(
+				createMethodCallEvent(Names.newMethod("0M:[p:void] [i:Namespace.DeclaringType, a, 1].M()")));
 
-		Set<APIUsagePattern> patterns = new EpisodesToPatternTransformer()
-				.transform(episodes, mapping);
+		Set<APIUsagePattern> patterns = new EpisodesToPatternTransformer().transform(episodes, mapping);
 
 		assertThat(patterns, hasSize(1));
 		assertThat(patterns.iterator().next(),
@@ -52,106 +41,73 @@ public class EpisodesToPatternTransformerTest {
 	public void transformsMultiEventEpisode() {
 		Fact fact0 = new Fact(0);
 		Fact fact1 = new Fact(1);
-		Set<Episode> episodes = new HashSet<>(
-				Collections.singletonList(createEpisode(1337, fact0, fact1,
-						new Fact(fact0, fact1))));
-		List<Event> mapping = Arrays
-				.asList(createMethodCallEvent(Names
-						.newMethod("0M:[p:void] [i:Namespace.DeclaringType, a, 1].M()")),
-						createMethodCallEvent(Names
-								.newMethod("0M:[p:void] [i:Other.Type, a, 1].N()")));
+		Set<Episode> episodes = set(createEpisode(1337, fact0, fact1, new Fact(fact0, fact1)));
+		List<Event> mapping = list(
+				createMethodCallEvent(Names.newMethod("0M:[p:void] [i:Namespace.DeclaringType, a, 1].M()")),
+				createMethodCallEvent(Names.newMethod("0M:[p:void] [i:Other.Type, a, 1].N()")));
 
-		Set<APIUsagePattern> patterns = new EpisodesToPatternTransformer()
-				.transform(episodes, mapping);
+		Set<APIUsagePattern> patterns = new EpisodesToPatternTransformer().transform(episodes, mapping);
 
 		assertThat(patterns, hasSize(1));
-		assertThat(
-				patterns.iterator().next(),
-				hasOrderEdge(methodCall("Namespace.DeclaringType", "M()"),
-						methodCall("Other.Type", "N()")));
+		assertThat(patterns.iterator().next(),
+				hasOrderEdge(methodCall("Namespace.DeclaringType", "M()"), methodCall("Other.Type", "N()")));
 	}
 
 	@Test
 	public void transformsTwoDiscEventEpisode() {
 		Fact fact0 = new Fact(0);
 		Fact fact1 = new Fact(1);
-		Set<Episode> episodes = new HashSet<>(
-				Collections.singletonList(createEpisode(1337, fact0, fact1)));
-		List<Event> mapping = Arrays
-				.asList(createMethodCallEvent(Names
-						.newMethod("0M:[p:void] [i:Namespace.DeclaringType, a, 1].M()")),
-						createMethodCallEvent(Names
-								.newMethod("0M:[p:void] [i:Other.Type, a, 1].N()")));
+		Set<Episode> episodes = set(createEpisode(1337, fact0, fact1));
+		List<Event> mapping = list(
+				createMethodCallEvent(Names.newMethod("0M:[p:void] [i:A, a, 1].A()")),
+				createMethodCallEvent(Names.newMethod("0M:[p:void] [i:B, a, 1].B()")));
 
-		Set<APIUsagePattern> patterns = new EpisodesToPatternTransformer()
-				.transform(episodes, mapping);
+		Set<APIUsagePattern> patterns = new EpisodesToPatternTransformer().transform(episodes, mapping);
 
-		Episode episode1 = createEpisode(1337, fact0, fact1, new Fact(fact0,
-				fact1));
-		Episode episode2 = createEpisode(1337, fact0, fact1, new Fact(fact1,
-				fact0));
-		APIUsagePattern pattern1 = new EpisodesToPatternTransformer()
-				.transform(episode1, mapping);
-		APIUsagePattern pattern2 = new EpisodesToPatternTransformer()
-				.transform(episode2, mapping);
-
-		assertThat(patterns, hasSize(2));
-		assertTrue(patterns.contains(pattern1));
-		assertTrue(patterns.contains(pattern2));
+		assertThat(patterns, containsInAnyOrder(
+				hasOrderEdge(methodCall("A", "A()"), methodCall("B", "B()")),
+				hasOrderEdge(methodCall("B", "B()"), methodCall("A", "A()"))
+		));
 	}
 
 	@Test
 	public void transformsThreeDiscEventEpisode() {
 		Fact fact0 = new Fact(0);
 		Fact fact1 = new Fact(1);
-		Fact fact2 = new Fact(1);
-		Set<Episode> episodes = new HashSet<>(
-				Collections.singletonList(createEpisode(1337, fact0, fact1,
-						fact2)));
-		List<Event> mapping = Arrays
-				.asList(createMethodCallEvent(Names
-						.newMethod("0M:[p:void] [i:Namespace.DeclaringType, a, 1].M()")),
-						createMethodCallEvent(Names
-								.newMethod("0M:[p:void] [i:Other.Type, a, 1].N()")),
-						createMethodCallEvent(Names
-								.newMethod("0M:[p:void] [i:Third.Type, a, 1].O()")));
+		Fact fact2 = new Fact(2);
+		Set<Episode> episodes = set(createEpisode(1337, fact0, fact1, fact2));
+		List<Event> mapping = list(
+		        createMethodCallEvent(Names.newMethod("0M:[p:void] [i:A, a, 1].A()")),
+                createMethodCallEvent(Names.newMethod("0M:[p:void] [i:B, a, 1].B()")),
+                createMethodCallEvent(Names.newMethod("0M:[p:void] [i:C, a, 1].C()")));
 
-		Set<APIUsagePattern> patterns = new EpisodesToPatternTransformer()
-				.transform(episodes, mapping);
+		Set<APIUsagePattern> patterns = new EpisodesToPatternTransformer().transform(episodes, mapping);
 
-		Episode episode1 = createEpisode(1337, fact0, fact1, fact2, new Fact(
-				fact0, fact1), new Fact(fact0, fact2));
-		Episode episode2 = createEpisode(1337, fact0, fact1, fact2, new Fact(
-				fact1, fact0), new Fact(fact2, fact0));
-		Episode episode3 = createEpisode(1337, fact0, fact1, fact2, new Fact(
-				fact1, fact0), new Fact(fact1, fact2));
-		Episode episode4 = createEpisode(1337, fact0, fact1, fact2, new Fact(
-				fact0, fact1), new Fact(fact2, fact1));
-		Episode episode5 = createEpisode(1337, fact0, fact1, fact2, new Fact(
-				fact2, fact0), new Fact(fact2, fact1));
-		Episode episode6 = createEpisode(1337, fact0, fact1, fact2, new Fact(
-				fact0, fact2), new Fact(fact1, fact2));
+		assertThat(patterns, containsInAnyOrder(
+		        both(hasOrderEdge(methodCall("A", "A()"), methodCall("B", "B()")))
+                        .and(hasOrderEdge(methodCall("A", "A()"), methodCall("C", "C()")))
+                        .and(hasOrderEdge(methodCall("B", "B()"), methodCall("C", "C()"))),
 
-		APIUsagePattern pattern1 = new EpisodesToPatternTransformer()
-				.transform(episode1, mapping);
-		APIUsagePattern pattern2 = new EpisodesToPatternTransformer()
-				.transform(episode2, mapping);
-		APIUsagePattern pattern3 = new EpisodesToPatternTransformer()
-				.transform(episode3, mapping);
-		APIUsagePattern pattern4 = new EpisodesToPatternTransformer()
-				.transform(episode4, mapping);
-		APIUsagePattern pattern5 = new EpisodesToPatternTransformer()
-				.transform(episode5, mapping);
-		APIUsagePattern pattern6 = new EpisodesToPatternTransformer()
-				.transform(episode6, mapping);
+                both(hasOrderEdge(methodCall("A", "A()"), methodCall("B", "B()")))
+                        .and(hasOrderEdge(methodCall("A", "A()"), methodCall("C", "C()")))
+                        .and(hasOrderEdge(methodCall("C", "C()"), methodCall("B", "B()"))),
 
-		assertThat(patterns, hasSize(6));
-		assertTrue(patterns.contains(pattern1));
-		assertTrue(patterns.contains(pattern2));
-		assertTrue(patterns.contains(pattern3));
-		assertTrue(patterns.contains(pattern4));
-		assertTrue(patterns.contains(pattern5));
-		assertTrue(patterns.contains(pattern6));
+                both(hasOrderEdge(methodCall("B", "B()"), methodCall("A", "A()")))
+                        .and(hasOrderEdge(methodCall("B", "B()"), methodCall("C", "C()")))
+                        .and(hasOrderEdge(methodCall("A", "A()"), methodCall("C", "C()"))),
+
+                both(hasOrderEdge(methodCall("B", "B()"), methodCall("A", "A()")))
+                        .and(hasOrderEdge(methodCall("B", "B()"), methodCall("C", "C()")))
+                        .and(hasOrderEdge(methodCall("C", "C()"), methodCall("A", "A()"))),
+
+                both(hasOrderEdge(methodCall("C", "C()"), methodCall("A", "A()")))
+                        .and(hasOrderEdge(methodCall("C", "C()"), methodCall("B", "B()")))
+                        .and(hasOrderEdge(methodCall("A", "A()"), methodCall("B", "B()"))),
+
+                both(hasOrderEdge(methodCall("C", "C()"), methodCall("A", "A()")))
+                        .and(hasOrderEdge(methodCall("C", "C()"), methodCall("B", "B()")))
+                        .and(hasOrderEdge(methodCall("B", "B()"), methodCall("A", "A()")))
+        ));
 	}
 
 	@Test
@@ -187,10 +143,20 @@ public class EpisodesToPatternTransformerTest {
 				+ " episodes to patterns.");
 	}
 
+	@SafeVarargs
+	private final <A> Set<A> set(A... elements) {
+		return new HashSet<>(list(elements));
+	}
+
+	@SafeVarargs
+	private final <A> List<A> list(A... elements) {
+		return Arrays.asList(elements);
+	}
+
 	private Episode createEpisode(int frequency, Fact... facts) {
 		Episode episode = new Episode();
 		episode.setFrequency(frequency);
-		episode.addListOfFacts(Arrays.asList(facts));
+		episode.addListOfFacts(list(facts));
 		return episode;
 	}
 
