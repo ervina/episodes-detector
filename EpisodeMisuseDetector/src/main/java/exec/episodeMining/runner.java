@@ -15,6 +15,7 @@ import cc.episodeMining.data.EventsFilter;
 import cc.episodeMining.data.SequenceGenerator;
 import cc.episodeMining.mudetect.EpisodesToPatternTransformer;
 import cc.episodeMining.mudetect.TraceToAUGTransformer;
+import cc.episodeMining.statistics.PatternStatistics;
 import cc.kave.episodes.io.EpisodeParser;
 import cc.kave.episodes.io.EventStreamIo;
 import cc.kave.episodes.io.FileReader;
@@ -99,6 +100,11 @@ public class runner {
 					new ParallelPatterns());
 			Map<Integer, Set<Episode>> patterns = patternFilter.filter(
 					EpisodeType.GENERAL, episodes, THRESHFREQ, THRESHENT);
+			
+//			PatternStatistics statistics = new PatternStatistics();
+//			statistics.compute(patterns);
+//			statistics.DiscNodes(patterns);
+			
 			Set<Episode> setOfPatterns = getSetPatterns(patterns);
 			System.out.println("\nMaximal pattern size "
 					+ (patterns.size() + 1));
@@ -110,30 +116,30 @@ public class runner {
 					.transform(setOfPatterns, mapping);
 			System.out.println("Number of patterns of APIUsage transformer: " + augPatterns.size());
 
-			Collection<APIUsageExample> targets = loadTargetAUGs(args.getTargetSrcPaths(), args.getDependencyClassPath());
-			AUGLabelProvider labelProvider = new BaseAUGLabelProvider();
-			MuDetect detection = new MuDetect(
-					new MinPatternActionsModel(() -> augPatterns, 2),
-					new AlternativeMappingsOverlapsFinder(
-							new AlternativeMappingsOverlapsFinder.Config() {
-								{
-									isStartNode = super.isStartNode.and(new VeryUnspecificReceiverTypePredicate().negate());
-									nodeMatcher = new EquallyLabelledNodeMatcher(labelProvider);
-									edgeMatcher = new EquallyLabelledEdgeMatcher(labelProvider);
-									edgeOrder = new DataEdgeTypePriorityOrder();
-									extensionEdgeTypes = new HashSet<>(Arrays.asList(OrderEdge.class));
-								}
-							}),
-					new MissingElementViolationPredicate(),
-					new DefaultFilterAndRankingStrategy(
-							new WeightRankingStrategy(
-									new ProductWeightFunction(
-											new OverlapWithoutEdgesToMissingNodesWeightFunction(
-													new ConstantNodeWeightFunction()),
-											new PatternSupportWeightFunction(),
-											new ViolationSupportWeightFunction()))));
-			List<Violation> violations = detection.findViolations(targets);
-
+//			Collection<APIUsageExample> targets = loadTargetAUGs(args.getTargetSrcPaths(), args.getDependencyClassPath());
+//			AUGLabelProvider labelProvider = new BaseAUGLabelProvider();
+//			MuDetect detection = new MuDetect(
+//					new MinPatternActionsModel(() -> augPatterns, 2),
+//					new AlternativeMappingsOverlapsFinder(
+//							new AlternativeMappingsOverlapsFinder.Config() {
+//								{
+//									isStartNode = super.isStartNode.and(new VeryUnspecificReceiverTypePredicate().negate());
+//									nodeMatcher = new EquallyLabelledNodeMatcher(labelProvider);
+//									edgeMatcher = new EquallyLabelledEdgeMatcher(labelProvider);
+//									edgeOrder = new DataEdgeTypePriorityOrder();
+//									extensionEdgeTypes = new HashSet<>(Arrays.asList(OrderEdge.class));
+//								}
+//							}),
+//					new MissingElementViolationPredicate(),
+//					new DefaultFilterAndRankingStrategy(
+//							new WeightRankingStrategy(
+//									new ProductWeightFunction(
+//											new OverlapWithoutEdgesToMissingNodesWeightFunction(
+//													new ConstantNodeWeightFunction()),
+//											new PatternSupportWeightFunction(),
+//											new ViolationSupportWeightFunction()))));
+//			List<Violation> violations = detection.findViolations(targets);
+			List<Violation> violations = Lists.newLinkedList();
 			return output.withFindings(violations, ViolationUtils::toFinding);
 		}
 
