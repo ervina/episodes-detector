@@ -1,4 +1,5 @@
 package exec.episodeMining;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,7 +16,6 @@ import cc.episodeMining.data.EventsFilter;
 import cc.episodeMining.data.SequenceGenerator;
 import cc.episodeMining.mudetect.EpisodesToPatternTransformer;
 import cc.episodeMining.mudetect.TraceToAUGTransformer;
-import cc.episodeMining.statistics.PatternStatistics;
 import cc.kave.episodes.io.EpisodeParser;
 import cc.kave.episodes.io.EventStreamIo;
 import cc.kave.episodes.io.FileReader;
@@ -64,11 +64,12 @@ public class runner {
 	private static FileReader reader = new FileReader();
 
 	private static final int FREQUENCY = 2;
-	private static final double ENTROPY = 0.001;
+	private static final double ENTROPY = 0.5;
 	private static final int BREAKER = 5000;
 
 	private static final int THRESHFREQ = 20;
 	private static final double THRESHENT = 0.5;
+	private static final double THRESHSUBP = 1.0;
 
 	public static void main(String[] args) throws Exception {
 		new MuBenchRunner().withMineAndDetectStrategy(new Strategy()).run(args);
@@ -98,36 +99,41 @@ public class runner {
 			PatternFilter patternFilter = new PatternFilter(
 					new PartialPatterns(), new SequentialPatterns(),
 					new ParallelPatterns());
-			Map<Integer, Set<Episode>> patterns = patternFilter.filter(
-					EpisodeType.GENERAL, episodes, THRESHFREQ, THRESHENT);
-			
-//			PatternStatistics statistics = new PatternStatistics();
-//			statistics.compute(patterns);
-//			statistics.DiscNodes(patterns);
-			
-			Set<Episode> setOfPatterns = getSetPatterns(patterns);
-			System.out.println("\nMaximal pattern size "
-					+ (patterns.size() + 1));
-			System.out.println("Number of patterns: " + setOfPatterns.size());
+			Set<Episode> patterns = patternFilter.subPatterns(
+					EpisodeType.GENERAL, episodes, THRESHFREQ, THRESHENT,
+					THRESHSUBP);
+
+			// PatternStatistics statistics = new PatternStatistics();
+			// statistics.compute(patterns);
+			// statistics.DiscNodes(patterns);
+
+			System.out.println("Number of patterns: " + patterns.size());
 
 			EventStreamIo esio = new EventStreamIo(new File(getEventsPath()));
 			List<Event> mapping = esio.readMapping(FREQUENCY);
 			Set<APIUsagePattern> augPatterns = new EpisodesToPatternTransformer()
-					.transform(setOfPatterns, mapping);
-			System.out.println("Number of patterns of APIUsage transformer: " + augPatterns.size());
+					.transform(patterns, mapping);
+			System.out.println("Number of patterns of APIUsage transformer: "
+					+ augPatterns.size());
 
-//			Collection<APIUsageExample> targets = loadTargetAUGs(args.getTargetSrcPaths(), args.getDependencyClassPath());
+//			Collection<APIUsageExample> targets = loadTargetAUGs(
+//					args.getTargetSrcPaths(), args.getDependencyClassPath());
 //			AUGLabelProvider labelProvider = new BaseAUGLabelProvider();
 //			MuDetect detection = new MuDetect(
 //					new MinPatternActionsModel(() -> augPatterns, 2),
 //					new AlternativeMappingsOverlapsFinder(
 //							new AlternativeMappingsOverlapsFinder.Config() {
 //								{
-//									isStartNode = super.isStartNode.and(new VeryUnspecificReceiverTypePredicate().negate());
-//									nodeMatcher = new EquallyLabelledNodeMatcher(labelProvider);
-//									edgeMatcher = new EquallyLabelledEdgeMatcher(labelProvider);
+//									isStartNode = super.isStartNode
+//											.and(new VeryUnspecificReceiverTypePredicate()
+//													.negate());
+//									nodeMatcher = new EquallyLabelledNodeMatcher(
+//											labelProvider);
+//									edgeMatcher = new EquallyLabelledEdgeMatcher(
+//											labelProvider);
 //									edgeOrder = new DataEdgeTypePriorityOrder();
-//									extensionEdgeTypes = new HashSet<>(Arrays.asList(OrderEdge.class));
+//									extensionEdgeTypes = new HashSet<>(Arrays
+//											.asList(OrderEdge.class));
 //								}
 //							}),
 //					new MissingElementViolationPredicate(),
@@ -152,13 +158,15 @@ public class runner {
 			return output;
 		}
 
-		private Collection<APIUsageExample> loadTargetAUGs(
-				String[] srcPaths, String[] classpath) throws IOException {
-			List<Triplet<String, Event, List<Event>>> traces = parser(srcPaths, classpath);
+		private Collection<APIUsageExample> loadTargetAUGs(String[] srcPaths,
+				String[] classpath) throws IOException {
+			List<Triplet<String, Event, List<Event>>> traces = parser(srcPaths,
+					classpath);
 
 			Collection<APIUsageExample> targets = new ArrayList<>();
 			for (Triplet<String, Event, List<Event>> trace : traces) {
-				targets.add(TraceToAUGTransformer.transform(trace.getFirst(), trace.getSecond(), trace.getThird()));
+				targets.add(TraceToAUGTransformer.transform(trace.getFirst(),
+						trace.getSecond(), trace.getThird()));
 			}
 			return targets;
 		}
