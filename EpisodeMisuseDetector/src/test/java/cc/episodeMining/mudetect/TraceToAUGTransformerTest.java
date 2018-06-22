@@ -1,26 +1,27 @@
 package cc.episodeMining.mudetect;
 
-import cc.episodeMining.data.EventStreamGenerator;
-import cc.episodeMining.data.SequenceGenerator;
-import cc.kave.episodes.model.Triplet;
-import cc.kave.episodes.model.events.Event;
-import de.tu_darmstadt.stg.mudetect.aug.model.APIUsageExample;
-import org.apache.commons.io.FileUtils;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasNode;
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasOrderEdge;
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.NodeMatchers.methodCall;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import cc.episodeMining.data.EventStreamGenerator;
+import cc.episodeMining.data.SequenceGenerator;
+import cc.kave.episodes.model.Triplet;
+import cc.kave.episodes.model.events.Event;
+import de.tu_darmstadt.stg.mudetect.aug.model.APIUsageExample;
 
 public class TraceToAUGTransformerTest {
     @Rule
