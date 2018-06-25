@@ -7,7 +7,7 @@ import de.tu_darmstadt.stg.mudetect.aug.model.actions.MethodCallNode;
 
 import java.util.Iterator;
 
-class TransformerUtils {
+public class TransformerUtils {
     public static MethodCallNode createCallNode(IMethodName method) {
         return new MethodCallNode(getTypeName(method.getDeclaringType()), getMethodSignature(method));
     }

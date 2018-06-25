@@ -7,6 +7,7 @@ import com.google.common.collect.Sets;
 
 import de.tu_darmstadt.stg.mudetect.aug.model.Edge;
 import de.tu_darmstadt.stg.mudetect.aug.model.Node;
+import de.tu_darmstadt.stg.mudetect.aug.model.controlflow.OrderEdge;
 import de.tu_darmstadt.stg.mudetect.aug.model.patterns.APIUsagePattern;
 
 public class SubpatternsGenerator {
@@ -32,7 +33,8 @@ public class SubpatternsGenerator {
 		int numNodes = nodes.size();
 
 		for (Node n : nodes) {
-			if (pattern.degreeOf(n) < (numNodes - 1)) {
+			int nodeDegree = pattern.edgesOf(n).size();
+			if (nodeDegree < (numNodes - 1)) {
 				return true;
 			}
 		}
@@ -98,7 +100,10 @@ public class SubpatternsGenerator {
 				subpattern.addVertex(node);
 			}
 			for (Edge edge : subppaternEdge) {
-				subpattern.addEdge(edge.getSource(), edge.getTarget());
+				Node source = edge.getSource();
+				Node target = edge.getTarget();
+				subpattern.addEdge(source, target,
+						new OrderEdge(source, target));
 			}
 			results.add(subpattern);
 		}

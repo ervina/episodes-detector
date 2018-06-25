@@ -1,5 +1,24 @@
 package cc.episodeMining.mudetect;
 
+import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasNodes;
+import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasOrderEdge;
+import static de.tu_darmstadt.stg.mudetect.aug.matchers.NodeMatchers.methodCall;
+import static org.hamcrest.Matchers.both;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.junit.Test;
+
 import cc.kave.commons.model.naming.Names;
 import cc.kave.commons.model.naming.codeelements.IMethodName;
 import cc.kave.episodes.io.EpisodeParser;
@@ -10,17 +29,6 @@ import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
 import cc.kave.episodes.model.events.Fact;
 import de.tu_darmstadt.stg.mudetect.aug.model.patterns.APIUsagePattern;
-import org.junit.Test;
-
-import java.io.File;
-import java.util.*;
-
-import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasNodes;
-import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasOrderEdge;
-import static de.tu_darmstadt.stg.mudetect.aug.matchers.NodeMatchers.methodCall;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class EpisodesToPatternTransformerTest {
 
