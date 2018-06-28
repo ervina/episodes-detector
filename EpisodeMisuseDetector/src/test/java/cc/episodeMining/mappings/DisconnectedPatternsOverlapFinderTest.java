@@ -3,13 +3,11 @@ package cc.episodeMining.mappings;
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasNodes;
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.AUGMatchers.hasOrderEdge;
 import static de.tu_darmstadt.stg.mudetect.aug.matchers.NodeMatchers.methodCall;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -17,9 +15,8 @@ import java.util.List;
 
 import org.hamcrest.Matcher;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-
-import com.google.common.collect.Sets;
 
 import cc.episodeMining.mudetect.TransformerUtils;
 import cc.kave.commons.model.naming.Names;
@@ -81,9 +78,9 @@ public class DisconnectedPatternsOverlapFinderTest {
 		target.addVertex(node1);
 		target.addVertex(node2);
 		target.addVertex(node3);
-		target.addVertex(node4);
 		target.addVertex(node5);
 		target.addVertex(node6);
+		target.addVertex(node4);
 
 		target.addEdge(node1, node2, new OrderEdge(node1, node2));
 		target.addEdge(node1, node3, new OrderEdge(node1, node3));
@@ -171,6 +168,75 @@ public class DisconnectedPatternsOverlapFinderTest {
 			assertTrue(overlap2.getMappedTargetNodes().contains(node1));
 			assertTrue(overlap2.getMappedTargetNodes().contains(node2));
 			assertTrue(overlap2.getMappedTargetNodes().contains(node3));
+		} else {
+			assertFalse(true);
+		}
+	}
+	
+	@Test
+	public void twoDisconnectedPattern() {
+		pattern.addVertex(node1);
+		pattern.addVertex(node2);
+		pattern.addVertex(node3);
+		pattern.addVertex(node4);
+
+		pattern.addEdge(node1, node2, new OrderEdge(node1, node2));
+		pattern.addEdge(node1, node3, new OrderEdge(node1, node3));
+
+		List<Overlap> actuals = sut.findOverlaps(target, pattern);
+		
+		assertThat(actuals, hasSize(2));
+		
+		Overlap overlap1 = actuals.get(0);
+		Overlap overlap2 = actuals.get(1);
+		
+		assertTarget(overlap1);
+		assertTarget(overlap2);
+		
+		if (overlap1.getNodeSize() == 4) {
+			assertThat(overlap1.getPattern(), hasNodes(mc1, mc2, mc3, mc4));
+			assertThat(overlap1.getPattern(), hasOrderEdge(mc1, mc2));
+			assertThat(overlap1.getPattern(), hasOrderEdge(mc1, mc3));
+			
+			assertThat(overlap2.getPattern(), hasNodes(mc1, mc2, mc4));
+			assertThat(overlap2.getPattern(), hasOrderEdge(mc1, mc2));
+			
+			assertThat(overlap1.getNodeSize(), is(4));
+			assertThat(overlap2.getNodeSize(), is(3));
+			
+			assertThat(overlap1.getEdgeSize(), is(2));
+			assertThat(overlap2.getEdgeSize(), is(1));
+			
+			assertTrue(overlap1.getMappedTargetNodes().contains(node1));
+			assertTrue(overlap1.getMappedTargetNodes().contains(node2));
+			assertTrue(overlap1.getMappedTargetNodes().contains(node3));
+			assertTrue(overlap1.getMappedTargetNodes().contains(node4));
+			
+			assertTrue(overlap2.getMappedTargetNodes().contains(node1));
+			assertTrue(overlap2.getMappedTargetNodes().contains(node2));
+			assertTrue(overlap2.getMappedTargetNodes().contains(node4));
+		} else if (overlap1.getNodeSize() == 3) {
+			assertThat(overlap1.getPattern(), hasNodes(mc1, mc2, mc4));
+			assertThat(overlap1.getPattern(), hasOrderEdge(mc1, mc2));
+			
+			assertThat(overlap2.getPattern(), hasNodes(mc1, mc2, mc3, mc4));
+			assertThat(overlap2.getPattern(), hasOrderEdge(mc1, mc2));
+			assertThat(overlap2.getPattern(), hasOrderEdge(mc1, mc3));
+			
+			assertThat(overlap1.getNodeSize(), is(3));
+			assertThat(overlap2.getNodeSize(), is(4));
+			
+			assertThat(overlap1.getEdgeSize(), is(1));
+			assertThat(overlap2.getEdgeSize(), is(2));
+			
+			assertTrue(overlap1.getMappedTargetNodes().contains(node1));
+			assertTrue(overlap1.getMappedTargetNodes().contains(node2));
+			assertTrue(overlap1.getMappedTargetNodes().contains(node4));
+			
+			assertTrue(overlap2.getMappedTargetNodes().contains(node1));
+			assertTrue(overlap2.getMappedTargetNodes().contains(node2));
+			assertTrue(overlap2.getMappedTargetNodes().contains(node3));
+			assertTrue(overlap2.getMappedTargetNodes().contains(node4));
 		} else {
 			assertFalse(true);
 		}

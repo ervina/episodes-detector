@@ -19,18 +19,16 @@ import de.tu_darmstadt.stg.mudetect.overlapsfinder.AlternativeMappingsOverlapsFi
 import de.tu_darmstadt.stg.mudetect.overlapsfinder.AlternativeMappingsOverlapsFinder.Config;
 
 public class DisconnectedPatternsOverlapFinder implements OverlapsFinder {
-	
+
 	private Config config;
-	
+
 	private OverlapsFinder of;
 
 	public DisconnectedPatternsOverlapFinder(Config config) {
 		this.config = config;
-		
+
 		of = new AlternativeMappingsOverlapsFinder(config);
 	}
-
-	
 
 	@Override
 	public List<Overlap> findOverlaps(APIUsageExample target,
@@ -46,9 +44,13 @@ public class DisconnectedPatternsOverlapFinder implements OverlapsFinder {
 			List<Overlap> overlaps = of.findOverlaps(target, aup);
 			spOverlaps.add(overlaps);
 		}
-		List<Overlap> results = combineOverlaps(target, spOverlaps.get(0),
-				spOverlaps.subList(1, spOverlaps.size() - 1));
-		return results;
+		if (spOverlaps.size() == 2) {
+			List<List<Overlap>> tmp = Lists.newLinkedList();
+			tmp.add(spOverlaps.get(1));
+			return combineOverlaps(target, spOverlaps.get(0), tmp);
+		}
+		List<List<Overlap>> tmp = spOverlaps.subList(1, spOverlaps.size() - 1);
+		return combineOverlaps(target, spOverlaps.get(0), tmp);
 	}
 
 	private List<Overlap> combineOverlaps(APIUsageExample target,
@@ -56,8 +58,13 @@ public class DisconnectedPatternsOverlapFinder implements OverlapsFinder {
 		if (subList.size() == 1) {
 			return combinePairs(target, list, subList.get(0));
 		}
-		return combineOverlaps(target, subList.get(0),
-				subList.subList(1, subList.size() - 1));
+		if (subList.size() == 2) {
+			List<List<Overlap>> tmp = Lists.newLinkedList();
+			tmp.add(subList.get(1));
+			return combineOverlaps(target, subList.get(0), tmp);
+		}
+		List<List<Overlap>> tmp = subList.subList(1, subList.size() - 1);
+		return combineOverlaps(target, subList.get(0), tmp);
 	}
 
 	private List<Overlap> combinePairs(APIUsageExample target,
