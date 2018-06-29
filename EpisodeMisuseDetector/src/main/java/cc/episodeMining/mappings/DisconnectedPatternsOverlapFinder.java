@@ -83,54 +83,33 @@ public class DisconnectedPatternsOverlapFinder implements OverlapsFinder {
 				for (Node patternNode : p1.vertexSet()) {
 					Node targetNode = o1.getMappedTargetNode(patternNode);
 					if (targetNode != null) {
-						targetNodeByPatternNode.put(targetNode, patternNode);
+						targetNodeByPatternNode.put(patternNode, targetNode);
 					}
 				}
 				for (Node patternNode : p2.vertexSet()) {
 					Node targetNode = o2.getMappedTargetNode(patternNode);
 					if (targetNode != null) {
-						targetNodeByPatternNode.put(targetNode, patternNode);
+						targetNodeByPatternNode.put(patternNode, targetNode);
 					}
 				}
-
 				Map<Edge, Edge> targetEdgeByPatternEdge = Maps
 						.newLinkedHashMap();
 
-				for (Edge targetEdge : o1.getMappedTargetEdges()) {
-					Node tSource = targetEdge.getSource();
-					Node tTarget = targetEdge.getTarget();
-					
-					for (Edge patternEdge : p1.edgeSet()) {
+				for (Edge patternEdge : pattern.edgeSet()) {
+					if (o1.mapsEdge(patternEdge) || o2.mapsEdge(patternEdge)) {
 						Node pSource = patternEdge.getSource();
 						Node pTarget = patternEdge.getTarget();
-						if (tSource.equals(pSource) && tTarget.equals(pTarget)) {
+
+						Node tSource = targetNodeByPatternNode.get(pSource);
+						Node tTarget = targetNodeByPatternNode.get(pTarget);
+						Edge targetEdge = findTargetEdge(tSource, tTarget,
+								target);
+
+						if (targetEdge != null) {
 							targetEdgeByPatternEdge
-									.put(targetEdge, patternEdge);
+									.put(patternEdge, targetEdge);
 						}
 					}
-				}
-//				for (Edge targetEdge : o2.getMappedTargetEdges()) {
-//					Node tSource = targetEdge.getSource();
-//					Node tTarget = targetEdge.getTarget();
-//					
-//					for (Edge patternEdge : p2.edgeSet()) {
-//						Node pSource = patternEdge.getSource();
-//						Node pTarget = patternEdge.getTarget();
-//						if (tSource.equals(pSource) && tTarget.equals(pTarget)) {
-//							targetEdgeByPatternEdge
-//									.put(targetEdge, patternEdge);
-//						}
-//					}
-//				}
-				for (Edge targetEdge : target.edgeSet()) {
-					Node tSource = targetEdge.getSource();
-					Node tTarget = targetEdge.getTarget();
-
-					Node pSource = targetNodeByPatternNode.get(tSource);
-					Node pTarget = targetNodeByPatternNode.get(tTarget);
-					Edge patternEdge = new OrderEdge(pSource, pTarget);
-
-					targetEdgeByPatternEdge.put(targetEdge, patternEdge);
 				}
 				Overlap overlap = new Overlap(pattern, target,
 						targetNodeByPatternNode, targetEdgeByPatternEdge);
@@ -138,6 +117,17 @@ public class DisconnectedPatternsOverlapFinder implements OverlapsFinder {
 			}
 		}
 		return combinedOverlaps;
+	}
+
+	private Edge findTargetEdge(Node tSource, Node tTarget,
+			APIUsageExample target) {
+		for (Edge edge : target.edgeSet()) {
+			if (edge.getSource().equals(tSource)
+					&& edge.getTarget().equals(tTarget)) {
+				return edge;
+			}
+		}
+		return null;
 	}
 
 	private APIUsagePattern generatePattern(APIUsagePattern p1,

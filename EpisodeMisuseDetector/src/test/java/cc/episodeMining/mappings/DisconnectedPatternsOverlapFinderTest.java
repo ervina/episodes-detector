@@ -15,7 +15,6 @@ import java.util.List;
 
 import org.hamcrest.Matcher;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import cc.episodeMining.mudetect.TransformerUtils;
@@ -229,8 +228,8 @@ public class DisconnectedPatternsOverlapFinderTest {
 			assertThat(overlap1.getEdgeSize(), is(1));
 			assertThat(overlap2.getEdgeSize(), is(2));
 			
-			assertTrue(overlap1.getMappedTargetNodes().contains(node1));
-			assertTrue(overlap1.getMappedTargetNodes().contains(node2));
+			assertTrue(overlap1.getMappedTargetNodes().contains(node5));
+			assertTrue(overlap1.getMappedTargetNodes().contains(node6));
 			assertTrue(overlap1.getMappedTargetNodes().contains(node4));
 			
 			assertTrue(overlap2.getMappedTargetNodes().contains(node1));
