@@ -82,16 +82,46 @@ public class DisconnectedPatternsOverlapFinder implements OverlapsFinder {
 
 				for (Node patternNode : p1.vertexSet()) {
 					Node targetNode = o1.getMappedTargetNode(patternNode);
-					targetNodeByPatternNode.put(targetNode, patternNode);
+					if (targetNode != null) {
+						targetNodeByPatternNode.put(targetNode, patternNode);
+					}
 				}
 				for (Node patternNode : p2.vertexSet()) {
 					Node targetNode = o2.getMappedTargetNode(patternNode);
-					targetNodeByPatternNode.put(targetNode, patternNode);
+					if (targetNode != null) {
+						targetNodeByPatternNode.put(targetNode, patternNode);
+					}
 				}
 
 				Map<Edge, Edge> targetEdgeByPatternEdge = Maps
 						.newLinkedHashMap();
 
+				for (Edge targetEdge : o1.getMappedTargetEdges()) {
+					Node tSource = targetEdge.getSource();
+					Node tTarget = targetEdge.getTarget();
+					
+					for (Edge patternEdge : p1.edgeSet()) {
+						Node pSource = patternEdge.getSource();
+						Node pTarget = patternEdge.getTarget();
+						if (tSource.equals(pSource) && tTarget.equals(pTarget)) {
+							targetEdgeByPatternEdge
+									.put(targetEdge, patternEdge);
+						}
+					}
+				}
+//				for (Edge targetEdge : o2.getMappedTargetEdges()) {
+//					Node tSource = targetEdge.getSource();
+//					Node tTarget = targetEdge.getTarget();
+//					
+//					for (Edge patternEdge : p2.edgeSet()) {
+//						Node pSource = patternEdge.getSource();
+//						Node pTarget = patternEdge.getTarget();
+//						if (tSource.equals(pSource) && tTarget.equals(pTarget)) {
+//							targetEdgeByPatternEdge
+//									.put(targetEdge, patternEdge);
+//						}
+//					}
+//				}
 				for (Edge targetEdge : target.edgeSet()) {
 					Node tSource = targetEdge.getSource();
 					Node tTarget = targetEdge.getTarget();
@@ -107,7 +137,6 @@ public class DisconnectedPatternsOverlapFinder implements OverlapsFinder {
 				combinedOverlaps.add(overlap);
 			}
 		}
-
 		return combinedOverlaps;
 	}
 
