@@ -43,6 +43,8 @@ public class SequenceGenerator {
 			paths[i] = files.get(i).getAbsolutePath();
 		}
 		FileASTRequestor r = new FileASTRequestor() {
+			
+			private String type;
 
 			private Event firstCtx;
 			private Event superCtx;
@@ -51,24 +53,23 @@ public class SequenceGenerator {
 			@Override
 			public void acceptAST(String sourceFilePath, CompilationUnit cu) {
 
-//				for (int i = 0; i < cu.types().size(); i++) {
-//					buildHierarchy((AbstractTypeDeclaration) cu.types().get(i),
-//							cu.getPackage() == null ? "" : cu.getPackage()
-//									.getName().getFullyQualifiedName()
-//									+ ".");
-//				}
 				stream.add(EventGenerator.sourcePath(sourceFilePath));
 				
 				cu.accept(new ASTVisitor() {
 					@Override
 					public boolean visit(MethodDeclaration node) {
-
+						
 						ASTNode parent = node.getParent();
+
 						IMethodBinding binding = node.resolveBinding();
 
 						firstCtx = null;
 						superCtx = null;
-						elementCtx = EventGenerator.elementContext(binding);
+						
+						String typeName = binding.getDeclaringClass().getName();
+						String methodName = binding.getName();
+						
+						elementCtx = EventGenerator.elementContext(typeName, methodName);
 						
 						ITypeBinding typeBinding = binding.getDeclaringClass()
 								.getTypeDeclaration();
@@ -94,6 +95,10 @@ public class SequenceGenerator {
 					public boolean visit(TypeDeclaration node) {
 						
 						ITypeBinding mb = node.resolveBinding();
+						
+						type = "";
+						
+						String typeName = mb.getDeclaringClass().getName();
 						// TODO Auto-generated method stub
 						return super.visit(node);
 					}
@@ -121,7 +126,7 @@ public class SequenceGenerator {
 							String type = tb.getName();
 							
 							addEnclosingContextIfAvailable();
-							stream.add(EventGenerator.constructor(tb));
+							stream.add(EventGenerator.constructor(type));
 						} else {
 							try {
 								throw new Exception("Unresolved type");
@@ -147,7 +152,7 @@ public class SequenceGenerator {
 							String type = tb.getName();
 							
 							addEnclosingContextIfAvailable();
-							stream.add(EventGenerator.invocation(tb, md));
+							stream.add(EventGenerator.invocation(type, md.getName()));
 						} else {
 							try {
 								throw new Exception("Unresolved type");

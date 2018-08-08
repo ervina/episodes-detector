@@ -18,19 +18,11 @@ public class EventGenerator {
 		return event;
 	}
 	
-	public static Event elementContext(IMethodBinding binding) {
-
-		// ITypeBinding classDeclaration = binding.getDeclaringClass();
-		// ITypeBinding typeDeclaration = classDeclaration.getTypeDeclaration();
-		// String namespace = typeDeclaration.getKey();
-		// String signature = binding.getKey();
-
-		String type = getType(binding);
-		String method = getMethod(binding);
+	public static Event elementContext(String typeName, String methodName) {
 
 		Event event = new Event();
 		event.setKind(EventKind.METHOD_DECLARATION);
-		event.setMethod(getMethodName(type, method));
+		event.setMethod(getMethodName(typeName, methodName));
 
 		return event;
 	}
@@ -57,12 +49,11 @@ public class EventGenerator {
 		return event;
 	}
 
-	public static Event invocation(ITypeBinding type, IMethodBinding binding) {
-		String method = getMethod(binding);
+	public static Event invocation(String type, String method) {
 		
 		Event event = new Event();
 		event.setKind(EventKind.INVOCATION);
-		event.setMethod(getMethodName(type.getName(), method));
+		event.setMethod(getMethodName(type, method));
 		
 		return event;
 	}
@@ -77,12 +68,12 @@ public class EventGenerator {
 		return event;
 	}
 	
-	public static Event constructor(ITypeBinding type) {
+	public static Event constructor(String type) {
 		String method = ".ctor";
 		
 		Event event = new Event();
 		event.setKind(EventKind.CONSTRUCTOR);
-		event.setMethod(getMethodName(type.getName(), method));
+		event.setMethod(getMethodName(type, method));
 		
 		return event;
 	}
@@ -92,11 +83,6 @@ public class EventGenerator {
 		return methodName;
 	}
 
-	private static String getType(IMethodBinding binding) {
-		String typeName = binding.getDeclaringClass().getName();
-		return typeName;
-	}
-	
 	private static IMethodName getMethodName(String type, String method) {
 		IMethodName methodName = Names.newMethod("[?] " + "[" + type + "]" + "." + method + "()");
 		return methodName;
