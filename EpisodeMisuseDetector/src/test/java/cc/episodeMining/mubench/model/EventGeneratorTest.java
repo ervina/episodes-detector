@@ -20,7 +20,7 @@ public class EventGeneratorTest {
 	
 	@Before 
 	public void setup() {
-		method = "[?] " + "[" + typeName + "]" + "." + methodName + "()";
+		method = "[?] [" + typeName + "]." + methodName + "()";
 		
 		event = new Event();
 	}
@@ -34,6 +34,26 @@ public class EventGeneratorTest {
 
 		Event actuals = EventGenerator.sourcePath(file_path);
 
+		assertEquals(event, actuals);
+	}
+	
+	@Test
+	public void firstCtx() {
+		event.setKind(EventKind.FIRST_DECLARATION);
+		event.setMethod(Names.newMethod(method));
+		
+		Event actuals = EventGenerator.firstContext(typeName, methodName);
+		
+		assertEquals(event, actuals);
+	}
+	
+	@Test
+	public void superCtx() {
+		event.setKind(EventKind.SUPER_DECLARATION);
+		event.setMethod(Names.newMethod(method));
+		
+		Event actuals = EventGenerator.superContext(typeName, methodName);
+		
 		assertEquals(event, actuals);
 	}
 
@@ -61,9 +81,19 @@ public class EventGeneratorTest {
 	@Test
 	public void constructor() {
 		event.setKind(EventKind.CONSTRUCTOR);
-		event.setMethod(Names.newMethod("[?] " + "[" + typeName + "]" + "..ctor()"));
+		event.setMethod(Names.newMethod("[?] [" + typeName + "]..ctor()"));
 		
 		Event actuals = EventGenerator.constructor(typeName);
+		
+		assertEquals(event, actuals);
+	}
+	
+	@Test
+	public void initializer() {
+		event.setKind(EventKind.INITIALIZER);
+		event.setMethod(Names.newMethod("[?] [" + typeName + "]..cctor()"));
+		
+		Event actuals = EventGenerator.initializer(typeName);
 		
 		assertEquals(event, actuals);
 	}
