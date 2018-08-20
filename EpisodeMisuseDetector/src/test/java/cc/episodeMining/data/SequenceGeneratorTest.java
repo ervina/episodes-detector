@@ -78,6 +78,30 @@ public class SequenceGeneratorTest {
 	}
 	
 	@Test
+	public void staticInitializer() throws IOException {
+		String method = "static {\n " +
+						"	Object o = new Object();\n" +
+						"	o.hashCode();\n }\n" +
+						"void n(Object o) {\n o.hashCode();\n }";
+		String code = createJavaClass(method);
+		
+		FileUtils.writeStringToFile(getFileName("test.java"), code);
+		
+		List<Event> expected = Lists.newLinkedList();
+		expected.add(createEvent("[?] [?]." + rootFolder.getRoot() + "/test.java", EventKind.SOURCE_FILE_PATH));
+		expected.add(createEvent("[?] [C]..cctor", EventKind.INITIALIZER));
+		expected.add(createEvent("[?] [Object]..ctor", EventKind.CONSTRUCTOR));
+		expected.add(createEvent("[?] [Object].hashCode", EventKind.INVOCATION));
+		expected.add(createEvent("[?] [C].n", EventKind.METHOD_DECLARATION));
+		expected.add(createEvent("[?] [Object].hashCode", EventKind.INVOCATION));
+		
+		List<Event> actuals = sut.generateMethodTraces(rootFolder.getRoot(), new String[] {});
+		
+		assertTrue(expected.size() == actuals.size());
+		assertEquals(expected, actuals);
+	}
+	
+	@Test
 	public void superCtx() throws IOException {
 		String method1 = "void m(Object o) {\n o.hashCode();\n }";
 		String method2 = "class NullTextNull extends StrBuilder {\n" +
@@ -122,12 +146,14 @@ public class SequenceGeneratorTest {
 	
 	@Test
 	public void firstCtx() throws IOException {
-		String method = "class TestClass implements StrBuilder {\n" +
+		String method = "import javax.swing.JPanel;\n" +
+						"class NullTextNull implements StrBuilder {\n" +
 						"	public String pattern(Object obj) {\n" +
 						"		String str = (obj == null ? this.getNullText() : obj.toString());\n" +
 						"		if (str == null) {\n" +
-						"			List<Integer> someList = Lists.newLinkedList();\n" +
+						"			JPanel controlPanel = new JPanel();\n" +
 						"			str = \"\";\n" +
+						"			 controlPanel.add(str);\n" +
 						"		}\n" +
 						"		return str;\n" +
 						"	}\n" +
@@ -145,9 +171,11 @@ public class SequenceGeneratorTest {
 		List<Event> expected = Lists.newLinkedList();
 		expected.add(createEvent("[?] [?]." + rootFolder.getRoot().getAbsolutePath() + "/test.java", EventKind.SOURCE_FILE_PATH));
 		expected.add(createEvent("[?] [NullTextNull].pattern", EventKind.METHOD_DECLARATION));
-		expected.add(createEvent("[?] [StrBuilder].pattern", EventKind.SUPER_DECLARATION));
+		expected.add(createEvent("[?] [StrBuilder].pattern", EventKind.FIRST_DECLARATION));
 		expected.add(createEvent("[?] [StrBuilder].getNullText", EventKind.INVOCATION));
 		expected.add(createEvent("[?] [Object].toString", EventKind.INVOCATION));
+		expected.add(createEvent("[?] [JPanel]..ctor", EventKind.CONSTRUCTOR));
+		expected.add(createEvent("[?] [Container].add", EventKind.INVOCATION));
 		
 		File path = new File(rootFolder.getRoot().getAbsolutePath());
 		List<Event> actuals = sut.generateMethodTraces(path, new String[] {});

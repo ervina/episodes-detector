@@ -26,25 +26,36 @@ import com.google.common.collect.Lists;
 //	}
 //}
 
-class TestClass implements StrBuilder {
+//class TestClass implements StrBuilder {
+//
+//	public String pattern(Object obj) {
+//
+//		String str = (obj == null ? this.getNullText() : obj.toString());
+//		if (str == null) {
+//			List<Integer> someList = Lists.newLinkedList();
+//			str = "";
+//		}
+//		return str;
+//	}
+//
+//	public String getNullText() {
+//		return "";
+//	}
+//}
+//
+//interface StrBuilder {
+//	String pattern(Object obj);
+//
+//	String getNullText();
+//}
 
-	public String pattern(Object obj) {
-
-		String str = (obj == null ? this.getNullText() : obj.toString());
-		if (str == null) {
-			List<Integer> someList = Lists.newLinkedList();
-			str = "";
-		}
-		return str;
+class TestClass {
+	static {
+		Object o = new Object();
+		o.hashCode();
 	}
 
-	public String getNullText() {
-		return "";
+	void n(Object o) {
+		o.hashCode();
 	}
-}
-
-interface StrBuilder {
-	String pattern(Object obj);
-
-	String getNullText();
 }
