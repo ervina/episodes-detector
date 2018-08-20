@@ -51,7 +51,7 @@ public class SequenceGenerator {
 
 			@Override
 			public void acceptAST(String sourceFilePath, CompilationUnit cu) {
-
+				
 				stream.add(EventGenerator.sourcePath(sourceFilePath));
 
 				cu.accept(new ASTVisitor() {
@@ -275,7 +275,6 @@ public class SequenceGenerator {
 		parser.setResolveBindings(true);
 		parser.setBindingsRecovery(true);
 		parser.createASTs(paths, null, new String[0], r, null);
-		System.out.println("Event stream length: " + stream.size());
 		return stream;
 	}
 

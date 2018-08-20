@@ -3,6 +3,7 @@ package cc.episodeMining.data;
 import java.util.List;
 import java.util.Map;
 
+import cc.kave.commons.model.naming.types.ITypeName;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
 
@@ -11,6 +12,22 @@ import com.google.common.collect.Maps;
 
 public class EventsFilter {
 
+	public Map<ITypeName, List<Event>> duplicates(List<Event> stream) {
+		Map<ITypeName, List<Event>> results = Maps.newLinkedHashMap();
+		ITypeName typeName = null;
+		List<Event> code = Lists.newLinkedList();
+		
+		for (Event event : stream) {
+			if (event.getKind() == EventKind.SOURCE_FILE_PATH) {
+				ITypeName type = event.getMethod().getDeclaringType();
+				if (results.containsKey(typeName)) {
+					System.err.println("Type exists" + type.getFullName());
+				}
+			}
+		}
+		return results;
+	}
+	
 	public List<Event> frequent(List<Event> sequence, int frequency) {
 		List<Event> output = Lists.newLinkedList();
 

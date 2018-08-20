@@ -8,9 +8,14 @@ import cc.kave.episodes.model.events.EventKind;
 public class EventGenerator {
 
 	public static Event sourcePath(String source) {
+		
+		int idxStart = source.lastIndexOf("/");
+		int idxEnd = source.lastIndexOf(".");
+		String type = source.substring(idxStart + 1, idxEnd);
+		
 		Event event = new Event();
 		event.setKind(EventKind.SOURCE_FILE_PATH);
-		event.setMethod(Names.newMethod("[?] [?]." + source + "()"));
+		event.setMethod(Names.newMethod("[?] [" + type + "]." + source + "()"));
 
 		return event;
 	}
