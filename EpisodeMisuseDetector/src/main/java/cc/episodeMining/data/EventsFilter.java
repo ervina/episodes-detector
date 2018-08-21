@@ -3,7 +3,7 @@ package cc.episodeMining.data;
 import java.util.List;
 import java.util.Map;
 
-import cc.kave.commons.model.naming.types.ITypeName;
+import cc.kave.commons.model.naming.codeelements.IMethodName;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
 
@@ -12,50 +12,68 @@ import com.google.common.collect.Maps;
 
 public class EventsFilter {
 
-	public Map<ITypeName, List<Event>> duplicates(List<Event> stream) {
-		Map<ITypeName, List<Event>> results = Maps.newLinkedHashMap();
-		ITypeName typeName = null;
+	public Map<IMethodName, List<Event>> duplicates(List<Event> stream) {
+		Map<IMethodName, List<Event>> results = Maps.newLinkedHashMap();
+		IMethodName methodName = null;
 		List<Event> code = Lists.newLinkedList();
-		
+
 		for (Event event : stream) {
 			if (event.getKind() == EventKind.SOURCE_FILE_PATH) {
-				ITypeName type = event.getMethod().getDeclaringType();
-				if (results.containsKey(typeName)) {
-					System.err.println("Type exists" + type.getFullName());
+				IMethodName method = event.getMethod();
+				if ((methodName != null) && !code.isEmpty()) {
+					results.put(methodName, code);
+					methodName = null;
+					code = Lists.newLinkedList();
 				}
+				if (results.containsKey(method)) {
+					continue;
+				}
+				methodName = method;
 			}
+			code.add(event);
+		}
+		if ((methodName != null) && !code.isEmpty()) {
+			results.put(methodName, code);
 		}
 		return results;
 	}
-	
-	public List<Event> frequent(List<Event> sequence, int frequency) {
-		List<Event> output = Lists.newLinkedList();
 
-		Map<Event, Integer> eventsCounter = counter(sequence);
+	public Map<IMethodName, List<Event>> frequent(
+			Map<IMethodName, List<Event>> stream, int frequency) {
+		Map<IMethodName, List<Event>> output = Maps.newLinkedHashMap();
 
-		for (Event event : sequence) {
-			if ((event.getKind() != EventKind.SOURCE_FILE_PATH)
-					&& (event.getKind() != EventKind.METHOD_DECLARATION)) {
-				if (eventsCounter.get(event) >= frequency) {
-					output.add(event);
+		Map<Event, Integer> eventsCounter = counter(stream);
+
+		for (Map.Entry<IMethodName, List<Event>> entry : stream.entrySet()) {
+			List<Event> events = Lists.newLinkedList();
+			for (Event event : entry.getValue()) {
+				if (event.getKind() != EventKind.METHOD_DECLARATION) {
+					if (eventsCounter.get(event) >= frequency) {
+						events.add(event);
+					}
+				} else {
+					events.add(event);
 				}
-			} else {
-				output.add(event);
+			}
+			if (!events.isEmpty()) {
+				output.put(entry.getKey(), events);
 			}
 		}
 		return output;
 	}
 
-	private Map<Event, Integer> counter(List<Event> events) {
+	private Map<Event, Integer> counter(Map<IMethodName, List<Event>> stream) {
 		Map<Event, Integer> results = Maps.newLinkedHashMap();
 
-		for (Event e : events) {
-			if (e.getKind() != EventKind.METHOD_DECLARATION) {
-				if (results.containsKey(e)) {
-					int freq = results.get(e);
-					results.put(e, freq + 1);
-				} else {
-					results.put(e, 1);
+		for (Map.Entry<IMethodName, List<Event>> entry : stream.entrySet()) {
+			for (Event e : entry.getValue()) {
+				if (e.getKind() != EventKind.METHOD_DECLARATION) {
+					if (results.containsKey(e)) {
+						int freq = results.get(e);
+						results.put(e, freq + 1);
+					} else {
+						results.put(e, 1);
+					}
 				}
 			}
 		}

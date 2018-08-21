@@ -16,6 +16,8 @@ import cc.episodeMining.data.EventsFilter;
 import cc.episodeMining.data.SequenceGenerator;
 import cc.episodeMining.mudetect.EpisodesToPatternTransformer;
 import cc.episodeMining.mudetect.TraceToAUGTransformer;
+import cc.kave.commons.model.naming.codeelements.IMethodName;
+import cc.kave.commons.model.naming.types.ITypeName;
 import cc.kave.episodes.io.EpisodeParser;
 import cc.kave.episodes.io.EventStreamIo;
 import cc.kave.episodes.io.FileReader;
@@ -103,9 +105,9 @@ public class runner {
 					EpisodeType.GENERAL, episodes, THRESHFREQ, THRESHENT,
 					THRESHSUBP);
 
-//			 PatternStatistics statistics = new PatternStatistics();
-//			 statistics.compute(patterns);
-//			 statistics.DiscNodes(patterns);
+			// PatternStatistics statistics = new PatternStatistics();
+			// statistics.compute(patterns);
+			// statistics.DiscNodes(patterns);
 
 			System.out.println("Number of patterns: " + patterns.size());
 
@@ -145,7 +147,7 @@ public class runner {
 											new PatternSupportWeightFunction(),
 											new ViolationSupportWeightFunction()))));
 			List<Violation> violations = detection.findViolations(targets);
-//			List<Violation> violations = Lists.newLinkedList();
+			// List<Violation> violations = Lists.newLinkedList();
 			return output.withFindings(violations, ViolationUtils::toFinding);
 		}
 
@@ -176,17 +178,21 @@ public class runner {
 			List<Event> sequences = buildMethodTraces(srcPaths, classpaths);
 
 			EventsFilter ef = new EventsFilter();
-			List<Event> frequentEvents = ef.frequent(sequences, FREQUENCY);
+			Map<IMethodName, List<Event>> events = ef.duplicates(sequences);
+			Map<IMethodName, List<Event>> frequentEvents = ef.frequent(events,
+					FREQUENCY);
 			System.out.println("Number of frequent events: "
 					+ frequentEvents.size());
 
-			EventStreamGenerator esg = new EventStreamGenerator(new File(
-					getEventsPath()));
-			List<Triplet<String, Event, List<Event>>> srcMapper = esg
-					.createSrcMapper(frequentEvents, FREQUENCY);
-			getNoFiles(srcMapper);
-			esg.eventStream(srcMapper, FREQUENCY);
+			// EventStreamGenerator esg = new EventStreamGenerator(new File(
+			// getEventsPath()));
+			// List<Triplet<String, Event, List<Event>>> srcMapper = esg
+			// .createSrcMapper(frequentEvents, FREQUENCY);
+			// getNoFiles(srcMapper);
+			// esg.eventStream(srcMapper, FREQUENCY);
 
+			List<Triplet<String, Event, List<Event>>> srcMapper = Lists
+					.newLinkedList();
 			return srcMapper;
 		}
 
