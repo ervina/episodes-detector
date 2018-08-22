@@ -29,8 +29,9 @@ public class EventsFilter {
 					continue;
 				}
 				methodName = method;
+			} else {
+				code.add(event);
 			}
-			code.add(event);
 		}
 		if ((methodName != null) && !code.isEmpty()) {
 			results.put(methodName, code);
