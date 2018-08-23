@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import cc.episodeMining.algorithm.ShellCommand;
+import cc.episodeMining.data.EventStreamGenerator;
 import cc.episodeMining.data.EventsFilter;
 import cc.episodeMining.data.SequenceGenerator;
 import cc.episodeMining.mudetect.EpisodesToPatternTransformer;
@@ -175,20 +176,22 @@ public class runner {
 			List<Event> sequences = buildMethodTraces(srcPaths, classpaths);
 
 			EventsFilter ef = new EventsFilter();
-			List<Event> events = ef.duplicates(sequences);
-			List<Event> frequentEvents = ef.frequent(events, FREQUENCY);
-			System.out.println("Number of frequent events: "
-					+ frequentEvents.size());
+			List<Event> unduplicated = ef.duplicates(sequences);
+			System.out.println("Number of events without duplicates: "
+					+ unduplicated.size());
 
-			// EventStreamGenerator esg = new EventStreamGenerator(new File(
-			// getEventsPath()));
-			// List<Triplet<String, Event, List<Event>>> srcMapper = esg
-			// .createSrcMapper(frequentEvents, FREQUENCY);
-			// getNoFiles(srcMapper);
+			List<Event> frequent = ef.frequent(unduplicated, FREQUENCY);
+			System.out.println("Number of frequent events: " + frequent.size());
+
+			EventStreamGenerator esg = new EventStreamGenerator(new File(
+					getEventsPath()));
+			List<Triplet<String, Event, List<Event>>> srcMapper = esg
+					.createSrcMapper(frequent);
+			getNoFiles(srcMapper);
 			// esg.eventStream(srcMapper, FREQUENCY);
 
-			List<Triplet<String, Event, List<Event>>> srcMapper = Lists
-					.newLinkedList();
+			// List<Triplet<String, Event, List<Event>>> srcMapper = Lists
+			// .newLinkedList();
 			return srcMapper;
 		}
 
@@ -217,7 +220,8 @@ public class runner {
 		}
 
 		private String getEventsPath() {
-			String pathName = "/Users/ervinacergani/Documents/MisuseDetector/events/";
+			String pathName = "/Users/ervinacergani/Documents/MisuseDetector/events/freq"
+					+ FREQUENCY + "/";
 			return pathName;
 		}
 

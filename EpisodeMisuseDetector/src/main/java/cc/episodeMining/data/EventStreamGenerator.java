@@ -6,8 +6,6 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
-import cc.episodeMining.mubench.model.EventGenerator;
-import cc.kave.commons.model.naming.Names;
 import cc.kave.commons.utils.json.JsonUtils;
 import cc.kave.episodes.model.EventStream;
 import cc.kave.episodes.model.Triplet;
@@ -25,40 +23,46 @@ public class EventStreamGenerator {
 	}
 
 	public List<Triplet<String, Event, List<Event>>> createSrcMapper(
-			List<Event> events, int frequency) {
+			List<Event> stream) {
 		List<Triplet<String, Event, List<Event>>> srcMapper = Lists
 				.newLinkedList();
 
-		String source = null;
-		Event md = null;
+		String source = "";
+		Event element = null;
 		List<Event> method = Lists.newLinkedList();
 
-		for (Event e : events) {
-			if (e.getKind() == EventKind.SOURCE_FILE_PATH) {
-				source = e.getMethod().getFullName();
-			} else if (e.getKind() == EventKind.METHOD_DECLARATION) {
-				if (!method.isEmpty()) {
-					if (md == null) {
-						md = EventGenerator.sourcePath(source);
-					}
-					srcMapper.add(new Triplet<String, Event, List<Event>>(source,
-							md, method));
+		for (Event event : stream) {
+			EventKind kind = event.getKind();
+			if ((kind == EventKind.SOURCE_FILE_PATH)
+					|| (kind == EventKind.METHOD_DECLARATION)
+					|| (kind == EventKind.INITIALIZER)) {
+				if (!source.isEmpty() && (element != null) && !method.isEmpty()) {
+					srcMapper.add(new Triplet<String, Event, List<Event>>(
+							source, element, method));
 				}
-				md = e;
+				if (kind == EventKind.SOURCE_FILE_PATH) {
+					source = event.getMethod().getFullName();
+					element = null;
+				}
+				if ((kind == EventKind.METHOD_DECLARATION)
+						|| (kind == EventKind.INITIALIZER)) {
+					element = event;
+				}
 				method = Lists.newLinkedList();
 			} else {
-				method.add(e);
+				method.add(event);
 			}
 		}
-		if (!method.isEmpty()) {
-			srcMapper.add(new Triplet<String, Event, List<Event>>(source, md, method));
+		if (!source.isEmpty() && (element != null) && !method.isEmpty()) {
+			srcMapper.add(new Triplet<String, Event, List<Event>>(source,
+					element, method));
 		}
-		JsonUtils.toJson(srcMapper, getStreamObjectPath(frequency));
+		JsonUtils.toJson(srcMapper, getStreamObjectPath());
 		return srcMapper;
 	}
 
-	public void eventStream(List<Triplet<String, Event, List<Event>>> stream,
-			int frequency) throws IOException {
+	public void eventStream(List<Triplet<String, Event, List<Event>>> stream)
+			throws IOException {
 		EventStream es = new EventStream();
 
 		for (Triplet<String, Event, List<Event>> triplet : stream) {
@@ -67,28 +71,22 @@ public class EventStreamGenerator {
 			}
 			es.increaseTimeout();
 		}
-		FileUtils.writeStringToFile(getEventStreamPath(frequency),
-				es.getStreamText());
-		JsonUtils.toJson(es.getMapping(), getMapPath(frequency));
+		FileUtils.writeStringToFile(getEventStreamPath(), es.getStreamText());
+		JsonUtils.toJson(es.getMapping(), getMapPath());
 	}
 
-	private String getPath(int frequency) {
-		String pathName = folder.getAbsolutePath() + "/freq" + frequency + "/";
-		return pathName;
-	}
-
-	private File getEventStreamPath(int frequency) {
-		String streamName = getPath(frequency) + "stream.txt";
+	private File getEventStreamPath() {
+		String streamName = folder.getAbsolutePath() + "/stream.txt";
 		return new File(streamName);
 	}
 
-	private File getMapPath(int frequency) {
-		String mapName = getPath(frequency) + "mapping.txt";
+	private File getMapPath() {
+		String mapName = folder.getAbsolutePath() + "/mapping.txt";
 		return new File(mapName);
 	}
 
-	private File getStreamObjectPath(int frequency) {
-		String mapName = getPath(frequency) + "object.json";
+	private File getStreamObjectPath() {
+		String mapName = folder.getAbsolutePath() + "/object.json";
 		return new File(mapName);
 	}
 }
