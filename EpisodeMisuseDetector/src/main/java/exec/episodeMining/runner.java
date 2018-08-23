@@ -11,13 +11,10 @@ import java.util.Map;
 import java.util.Set;
 
 import cc.episodeMining.algorithm.ShellCommand;
-import cc.episodeMining.data.EventStreamGenerator;
 import cc.episodeMining.data.EventsFilter;
 import cc.episodeMining.data.SequenceGenerator;
 import cc.episodeMining.mudetect.EpisodesToPatternTransformer;
 import cc.episodeMining.mudetect.TraceToAUGTransformer;
-import cc.kave.commons.model.naming.codeelements.IMethodName;
-import cc.kave.commons.model.naming.types.ITypeName;
 import cc.kave.episodes.io.EpisodeParser;
 import cc.kave.episodes.io.EventStreamIo;
 import cc.kave.episodes.io.FileReader;
@@ -178,9 +175,8 @@ public class runner {
 			List<Event> sequences = buildMethodTraces(srcPaths, classpaths);
 
 			EventsFilter ef = new EventsFilter();
-			Map<IMethodName, List<Event>> events = ef.duplicates(sequences);
-			Map<IMethodName, List<Event>> frequentEvents = ef.frequent(events,
-					FREQUENCY);
+			List<Event> events = ef.duplicates(sequences);
+			List<Event> frequentEvents = ef.frequent(events, FREQUENCY);
 			System.out.println("Number of frequent events: "
 					+ frequentEvents.size());
 
