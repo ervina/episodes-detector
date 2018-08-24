@@ -188,10 +188,8 @@ public class runner {
 			List<Triplet<String, Event, List<Event>>> srcMapper = esg
 					.generateStructure(frequent);
 			getNoFiles(srcMapper);
-			// esg.eventStream(srcMapper, FREQUENCY);
+			esg.generateFiles(srcMapper);
 
-			// List<Triplet<String, Event, List<Event>>> srcMapper = Lists
-			// .newLinkedList();
 			return srcMapper;
 		}
 

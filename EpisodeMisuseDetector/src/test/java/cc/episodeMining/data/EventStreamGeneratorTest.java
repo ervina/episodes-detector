@@ -10,20 +10,16 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import cc.kave.commons.model.naming.Names;
-import cc.kave.commons.model.naming.codeelements.IMethodName;
 import cc.kave.commons.utils.json.JsonUtils;
 import cc.kave.episodes.model.Triplet;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
 import cc.kave.episodes.model.events.Events;
-import cc.kave.episodes.model.events.Fact;
-import cc.recommenders.datastructures.Tuple;
 
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;

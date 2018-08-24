@@ -1,5 +1,9 @@
 package cc.episodeMining.mudetect;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import cc.kave.episodes.model.Triplet;
 import cc.kave.episodes.model.events.Event;
 import de.tu_darmstadt.stg.mudetect.aug.model.APIUsageExample;
@@ -7,13 +11,6 @@ import de.tu_darmstadt.stg.mudetect.aug.model.Location;
 import de.tu_darmstadt.stg.mudetect.aug.model.Node;
 import de.tu_darmstadt.stg.mudetect.aug.model.actions.MethodCallNode;
 import de.tu_darmstadt.stg.mudetect.aug.model.controlflow.OrderEdge;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static cc.kave.episodes.model.events.EventKind.INVOCATION;
-import static cc.kave.episodes.model.events.EventKind.METHOD_DECLARATION;
 
 public class TraceToAUGTransformer {
     public static APIUsageExample transform(Triplet<String, Event, List<Event>> data) {
