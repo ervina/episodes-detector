@@ -186,7 +186,7 @@ public class runner {
 			EventStreamGenerator esg = new EventStreamGenerator(new File(
 					getEventsPath()));
 			List<Triplet<String, Event, List<Event>>> srcMapper = esg
-					.createSrcMapper(frequent);
+					.generateStructure(frequent);
 			getNoFiles(srcMapper);
 			// esg.eventStream(srcMapper, FREQUENCY);
 

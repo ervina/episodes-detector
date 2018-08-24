@@ -138,7 +138,7 @@ public class TraceToAUGTransformerTest {
         String[] classpath = new String[0];
         List<Event> trace = new SequenceGenerator().generateMethodTraces(sourceFile, classpath);
         EventStreamGenerator eventStreamGenerator = new EventStreamGenerator(tmpFolder.newFolder());
-        List<Triplet<String, Event, List<Event>>> srcMapping = eventStreamGenerator.createSrcMapper(trace);
+        List<Triplet<String, Event, List<Event>>> srcMapping = eventStreamGenerator.generateStructure(trace);
 
         assertThat(srcMapping, hasSize(1));
 

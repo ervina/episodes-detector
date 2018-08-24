@@ -22,7 +22,7 @@ public class EventStreamGenerator {
 		this.folder = dir;
 	}
 
-	public List<Triplet<String, Event, List<Event>>> createSrcMapper(
+	public List<Triplet<String, Event, List<Event>>> generateStructure(
 			List<Event> stream) {
 		List<Triplet<String, Event, List<Event>>> srcMapper = Lists
 				.newLinkedList();
@@ -49,6 +49,9 @@ public class EventStreamGenerator {
 					element = event;
 				}
 				method = Lists.newLinkedList();
+				if (kind == EventKind.INITIALIZER) {
+					method.add(event);
+				}
 			} else {
 				method.add(event);
 			}
@@ -57,11 +60,10 @@ public class EventStreamGenerator {
 			srcMapper.add(new Triplet<String, Event, List<Event>>(source,
 					element, method));
 		}
-		JsonUtils.toJson(srcMapper, getStreamObjectPath());
 		return srcMapper;
 	}
 
-	public void eventStream(List<Triplet<String, Event, List<Event>>> stream)
+	public void generateFiles(List<Triplet<String, Event, List<Event>>> stream)
 			throws IOException {
 		EventStream es = new EventStream();
 
@@ -71,6 +73,7 @@ public class EventStreamGenerator {
 			}
 			es.increaseTimeout();
 		}
+		JsonUtils.toJson(stream, getStreamObjectPath());
 		FileUtils.writeStringToFile(getEventStreamPath(), es.getStreamText());
 		JsonUtils.toJson(es.getMapping(), getMapPath());
 	}
