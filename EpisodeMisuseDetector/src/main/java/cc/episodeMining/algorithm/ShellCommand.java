@@ -1,5 +1,7 @@
 package cc.episodeMining.algorithm;
 
+import static cc.recommenders.assertions.Asserts.assertTrue;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +13,10 @@ public class ShellCommand {
 	private File minerFolder;
 
 	public ShellCommand(File eventsDir, File minerDir) {
+		assertTrue(eventsDir.exists(), "Events folder does not exist");
+		assertTrue(eventsDir.isDirectory(), "Events is not a folder, but a file");
+		assertTrue(minerDir.exists(), "Episode miner folder does not exist");
+		assertTrue(minerDir.isDirectory(), "Episode miner is not a folder, but a file");
 		this.eventsFolder = eventsDir;
 		this.minerFolder = minerDir;
 	}
@@ -19,8 +25,7 @@ public class ShellCommand {
 			throws IOException {
 		String cmd = minerFolder.getAbsolutePath() + "/./n_graph_miner "
 				+ getStreamPath(frequency) + " " + frequency * 10 + " "
-				+ entropy + " " + breaker + " " + getFreqPath(frequency)
-				+ "/episodes.txt";
+				+ entropy + " " + breaker + " " + getEpisodePath(frequency);
 
 		System.out.println("\nRunning the miner ...");
 		String output = runCommand(cmd);
@@ -55,6 +60,11 @@ public class ShellCommand {
 
 	private String getStreamPath(int frequency) {
 		String path = getFreqPath(frequency) + "/stream.txt";
+		return path;
+	}
+
+	private String getEpisodePath(int frequency) {
+		String path = getFreqPath(frequency) + "/episodes.txt";
 		return path;
 	}
 }
