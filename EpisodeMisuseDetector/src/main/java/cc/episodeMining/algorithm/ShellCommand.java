@@ -24,8 +24,8 @@ public class ShellCommand {
 	public void execute(int frequency, double entropy, int breaker)
 			throws IOException {
 		String cmd = minerFolder.getAbsolutePath() + "/./n_graph_miner "
-				+ getStreamPath(frequency) + " " + frequency * 10 + " "
-				+ entropy + " " + breaker + " " + getEpisodePath(frequency);
+				+ getStreamPath() + " " + frequency + " "
+				+ entropy + " " + breaker + " " + getEpisodePath();
 
 		System.out.println("\nRunning the miner ...");
 		String output = runCommand(cmd);
@@ -53,18 +53,13 @@ public class ShellCommand {
 		return output.toString();
 	}
 
-	private String getFreqPath(int frequency) {
-		String path = eventsFolder.getAbsolutePath() + "/freq" + frequency;
+	private String getStreamPath() {
+		String path = eventsFolder.getAbsolutePath() + "/stream.txt";
 		return path;
 	}
 
-	private String getStreamPath(int frequency) {
-		String path = getFreqPath(frequency) + "/stream.txt";
-		return path;
-	}
-
-	private String getEpisodePath(int frequency) {
-		String path = getFreqPath(frequency) + "/episodes.txt";
+	private String getEpisodePath() {
+		String path = eventsFolder.getAbsolutePath() + "/episodes.txt";
 		return path;
 	}
 }

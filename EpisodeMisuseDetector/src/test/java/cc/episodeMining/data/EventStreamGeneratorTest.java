@@ -16,6 +16,7 @@ import org.junit.rules.TemporaryFolder;
 
 import cc.kave.commons.model.naming.Names;
 import cc.kave.commons.utils.json.JsonUtils;
+import cc.kave.episodes.model.EventStream;
 import cc.kave.episodes.model.Triplet;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
@@ -78,6 +79,37 @@ public class EventStreamGeneratorTest {
 				.generateStructure(stream);
 
 		assertEquals(expected, actuals);
+	}
+
+	@Test
+	public void eventstream() throws IOException {
+		Event source = createEvent("type1", "link1", EventKind.SOURCE_FILE_PATH);
+		Event md = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
+		Event event1 = createEvent("type2", "cctor", EventKind.INITIALIZER);
+		Event event2 = createEvent("type2", "m2", EventKind.INVOCATION);
+		Event event3 = createEvent("type1", "ctor", EventKind.CONSTRUCTOR);
+
+		String srcPath = source.getMethod().getFullName();
+		List<Triplet<String, Event, List<Event>>> structure = Lists
+				.newLinkedList();
+		structure.add(new Triplet<String, Event, List<Event>>(srcPath, md,
+				Lists.newArrayList(event2, event3)));
+		structure.add(new Triplet<String, Event, List<Event>>(srcPath, event1,
+				Lists.newArrayList(event1, event3, event2)));
+
+		EventStream expected = new EventStream();
+		expected.addEvent(event2);
+		expected.addEvent(event3);
+		expected.increaseTimeout();
+		expected.addEvent(event1);
+		expected.addEvent(event3);
+		expected.addEvent(event2);
+		expected.increaseTimeout();
+
+		EventStream actuals = sut.generateFiles(structure);
+
+		assertEquals(expected.getMapping(), actuals.getMapping());
+		assertEquals(expected.getStreamText(), actuals.getStreamText());
 	}
 
 	@Test

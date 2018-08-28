@@ -16,6 +16,7 @@ import cc.episodeMining.data.EventsFilter;
 import cc.episodeMining.data.SequenceGenerator;
 import cc.episodeMining.mudetect.EpisodesToPatternTransformer;
 import cc.episodeMining.mudetect.TraceToAUGTransformer;
+import cc.episodeMining.statistics.PatternStatistics;
 import cc.kave.episodes.io.EpisodeParser;
 import cc.kave.episodes.io.EventStreamIo;
 import cc.kave.episodes.io.FileReader;
@@ -25,6 +26,7 @@ import cc.kave.episodes.mining.patterns.PatternFilter;
 import cc.kave.episodes.mining.patterns.SequentialPatterns;
 import cc.kave.episodes.model.Episode;
 import cc.kave.episodes.model.EpisodeType;
+import cc.kave.episodes.model.EventStream;
 import cc.kave.episodes.model.Triplet;
 import cc.kave.episodes.model.events.Event;
 import cc.recommenders.io.Logger;
@@ -93,21 +95,23 @@ public class runner {
 			Map<Integer, Set<Episode>> episodes = episodeParser
 					.parser(FREQUENCY);
 			System.out.println("Maximal episode size " + episodes.size());
-			System.out.println("Number of episodes: "
-					+ getSetPatterns(episodes).size());
+			System.out.println("Number of episodes: " + counter(episodes));
 
 			PatternFilter patternFilter = new PatternFilter(
 					new PartialPatterns(), new SequentialPatterns(),
 					new ParallelPatterns());
-			Set<Episode> patterns = patternFilter.subPatterns(
-					EpisodeType.GENERAL, episodes, THRESHFREQ, THRESHENT,
-					THRESHSUBP);
+			Map<Integer, Set<Episode>> superepisodes = patternFilter
+					.subEpisodes(episodes, THRESHSUBP);
+			System.out
+					.println("Number of episodes after filtering subepisodes: "
+							+ counter(superepisodes));
+			Map<Integer, Set<Episode>> patterns = patternFilter.filter(
+					EpisodeType.GENERAL, superepisodes, THRESHFREQ, THRESHENT);
+			System.out.println("Number of patterns: " + counter(patterns));
 
 			// PatternStatistics statistics = new PatternStatistics();
 			// statistics.compute(patterns);
 			// statistics.DiscNodes(patterns);
-
-			System.out.println("Number of patterns: " + patterns.size());
 
 			EventStreamIo esio = new EventStreamIo(new File(getEventsPath()));
 			List<Event> mapping = esio.readMapping(FREQUENCY);
@@ -149,13 +153,12 @@ public class runner {
 			return output.withFindings(violations, ViolationUtils::toFinding);
 		}
 
-		private Set<Episode> getSetPatterns(Map<Integer, Set<Episode>> patterns) {
-			Set<Episode> output = Sets.newLinkedHashSet();
-
+		private int counter(Map<Integer, Set<Episode>> patterns) {
+			int counter = 0;
 			for (Map.Entry<Integer, Set<Episode>> entry : patterns.entrySet()) {
-				output.addAll(entry.getValue());
+				counter += entry.getValue().size();
 			}
-			return output;
+			return counter;
 		}
 
 		private Collection<APIUsageExample> loadTargetAUGs(String[] srcPaths,

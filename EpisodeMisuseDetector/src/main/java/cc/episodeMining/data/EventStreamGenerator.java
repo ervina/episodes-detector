@@ -63,7 +63,7 @@ public class EventStreamGenerator {
 		return srcMapper;
 	}
 
-	public void generateFiles(List<Triplet<String, Event, List<Event>>> stream)
+	public EventStream generateFiles(List<Triplet<String, Event, List<Event>>> stream)
 			throws IOException {
 		EventStream es = new EventStream();
 
@@ -76,6 +76,8 @@ public class EventStreamGenerator {
 		JsonUtils.toJson(stream, getStreamObjectPath());
 		FileUtils.writeStringToFile(getEventStreamPath(), es.getStreamText());
 		JsonUtils.toJson(es.getMapping(), getMapPath());
+		
+		return es;
 	}
 
 	private File getEventStreamPath() {
