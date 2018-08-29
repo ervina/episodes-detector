@@ -16,7 +16,6 @@ import cc.episodeMining.data.EventsFilter;
 import cc.episodeMining.data.SequenceGenerator;
 import cc.episodeMining.mudetect.EpisodesToPatternTransformer;
 import cc.episodeMining.mudetect.TraceToAUGTransformer;
-import cc.episodeMining.statistics.PatternStatistics;
 import cc.kave.episodes.io.EpisodeParser;
 import cc.kave.episodes.io.EventStreamIo;
 import cc.kave.episodes.io.FileReader;
@@ -26,7 +25,6 @@ import cc.kave.episodes.mining.patterns.PatternFilter;
 import cc.kave.episodes.mining.patterns.SequentialPatterns;
 import cc.kave.episodes.model.Episode;
 import cc.kave.episodes.model.EpisodeType;
-import cc.kave.episodes.model.EventStream;
 import cc.kave.episodes.model.Triplet;
 import cc.kave.episodes.model.events.Event;
 import cc.recommenders.io.Logger;
@@ -186,12 +184,11 @@ public class runner {
 			List<Event> frequent = ef.frequent(unduplicated, FREQUENCY);
 			System.out.println("Number of frequent events: " + frequent.size());
 
-			EventStreamGenerator esg = new EventStreamGenerator(new File(
-					getEventsPath()));
+			EventStreamGenerator esg = new EventStreamGenerator();
 			List<Triplet<String, Event, List<Event>>> srcMapper = esg
 					.generateStructure(frequent);
 			getNoFiles(srcMapper);
-			esg.generateFiles(srcMapper);
+			esg.generateFiles(new File(getEventsPath()), srcMapper);
 
 			return srcMapper;
 		}

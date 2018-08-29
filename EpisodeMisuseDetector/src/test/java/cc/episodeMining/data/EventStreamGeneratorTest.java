@@ -38,7 +38,7 @@ public class EventStreamGeneratorTest {
 	public void setup() {
 		stream = Lists.newLinkedList();
 
-		sut = new EventStreamGenerator(rootFolder.getRoot());
+		sut = new EventStreamGenerator();
 	}
 
 	@Test
@@ -106,7 +106,8 @@ public class EventStreamGeneratorTest {
 		expected.addEvent(event2);
 		expected.increaseTimeout();
 
-		EventStream actuals = sut.generateFiles(structure);
+		EventStream actuals = sut
+				.generateFiles(rootFolder.getRoot(), structure);
 
 		assertEquals(expected.getMapping(), actuals.getMapping());
 		assertEquals(expected.getStreamText(), actuals.getStreamText());
@@ -128,7 +129,7 @@ public class EventStreamGeneratorTest {
 		eventStream.add(new Triplet<String, Event, List<Event>>(srcPath,
 				event1, Lists.newArrayList(event3, event2)));
 
-		sut.generateFiles(eventStream);
+		sut.generateFiles(rootFolder.getRoot(), eventStream);
 
 		assertTrue(getStreamObjectPath().exists());
 		assertTrue(getStreamPath().exists());
@@ -151,7 +152,7 @@ public class EventStreamGeneratorTest {
 		eventStream.add(new Triplet<String, Event, List<Event>>(srcPath,
 				event1, Lists.newArrayList(event1, event3, event2)));
 
-		sut.generateFiles(eventStream);
+		sut.generateFiles(rootFolder.getRoot(), eventStream);
 
 		@SuppressWarnings("serial")
 		Type type1 = new TypeToken<List<Triplet<String, Event, List<Event>>>>() {

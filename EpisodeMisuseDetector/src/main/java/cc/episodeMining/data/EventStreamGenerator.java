@@ -16,12 +16,6 @@ import com.google.common.collect.Lists;
 
 public class EventStreamGenerator {
 
-	private File folder;
-
-	public EventStreamGenerator(File dir) {
-		this.folder = dir;
-	}
-
 	public List<Triplet<String, Event, List<Event>>> generateStructure(
 			List<Event> stream) {
 		List<Triplet<String, Event, List<Event>>> srcMapper = Lists
@@ -63,7 +57,8 @@ public class EventStreamGenerator {
 		return srcMapper;
 	}
 
-	public EventStream generateFiles(List<Triplet<String, Event, List<Event>>> stream)
+	public EventStream generateFiles(File path,
+			List<Triplet<String, Event, List<Event>>> stream)
 			throws IOException {
 		EventStream es = new EventStream();
 
@@ -73,24 +68,25 @@ public class EventStreamGenerator {
 			}
 			es.increaseTimeout();
 		}
-		JsonUtils.toJson(stream, getStreamObjectPath());
-		FileUtils.writeStringToFile(getEventStreamPath(), es.getStreamText());
-		JsonUtils.toJson(es.getMapping(), getMapPath());
-		
+		JsonUtils.toJson(stream, getStreamObjectPath(path));
+		FileUtils.writeStringToFile(getEventStreamPath(path),
+				es.getStreamText());
+		JsonUtils.toJson(es.getMapping(), getMapPath(path));
+
 		return es;
 	}
 
-	private File getEventStreamPath() {
+	private File getEventStreamPath(File folder) {
 		String streamName = folder.getAbsolutePath() + "/stream.txt";
 		return new File(streamName);
 	}
 
-	private File getMapPath() {
+	private File getMapPath(File folder) {
 		String mapName = folder.getAbsolutePath() + "/mapping.txt";
 		return new File(mapName);
 	}
 
-	private File getStreamObjectPath() {
+	private File getStreamObjectPath(File folder) {
 		String mapName = folder.getAbsolutePath() + "/object.json";
 		return new File(mapName);
 	}
