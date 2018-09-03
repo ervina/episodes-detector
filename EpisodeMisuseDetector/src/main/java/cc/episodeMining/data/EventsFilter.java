@@ -4,23 +4,41 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import cc.kave.commons.model.naming.types.ITypeName;
-import cc.kave.episodes.model.Triplet;
+import cc.episodeMining.mubench.model.EventGenerator;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
 import cc.recommenders.datastructures.Tuple;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 public class EventsFilter {
 
 	public List<Event> locals(List<Event> stream) {
-		List<Event> results = Lists.newLinkedList();
+		List<Event> noLocals = Lists.newLinkedList();
 
 		Map<String, Tuple<Set<String>, List<Event>>> pte = projectTypeEvents(stream);
 
-		return results;
+		for (Map.Entry<String, Tuple<Set<String>, List<Event>>> entry : pte
+				.entrySet()) {
+			Tuple<Set<String>, List<Event>> tuple = entry.getValue();
+			for (Event event : tuple.getSecond()) {
+				EventKind kind = event.getKind();
+				if ((kind == EventKind.SOURCE_FILE_PATH)
+						|| (kind == EventKind.METHOD_DECLARATION)
+						|| (kind == EventKind.INITIALIZER)) {
+					noLocals.add(event);
+				} else {
+					String type = event.getMethod().getDeclaringType()
+							.getFullName();
+					if (!tuple.getFirst().contains(type)) {
+						noLocals.add(event);
+					}
+				}
+			}
+		}
+		return removeEmptyMethods(noLocals);
 	}
 
 	public List<Event> duplicates(List<Event> stream) {
@@ -33,9 +51,9 @@ public class EventsFilter {
 				if ((source != null) && !code.isEmpty()) {
 					results.add(source);
 					results.addAll(code);
-					source = null;
-					code = Lists.newLinkedList();
 				}
+				source = null;
+				code = Lists.newLinkedList();
 				if (results.contains(event)) {
 					continue;
 				}
@@ -48,27 +66,25 @@ public class EventsFilter {
 			results.add(source);
 			results.addAll(code);
 		}
-		return results;
+		return removeEmptyMethods(results);
 	}
 
 	public List<Event> frequent(List<Event> stream, int frequency) {
-		List<Event> output = Lists.newLinkedList();
+		List<Event> results = Lists.newLinkedList();
 
 		Map<Event, Integer> eventsCounter = counter(stream);
 
 		for (Event event : stream) {
 			EventKind kind = event.getKind();
-			if ((kind != EventKind.SOURCE_FILE_PATH)
-					&& (kind != EventKind.METHOD_DECLARATION)
-					&& (kind != EventKind.INITIALIZER)) {
-				if (eventsCounter.get(event) >= frequency) {
-					output.add(event);
-				}
-			} else {
-				output.add(event);
+			if ((kind == EventKind.SOURCE_FILE_PATH)
+					|| (kind == EventKind.METHOD_DECLARATION)
+					|| (kind == EventKind.INITIALIZER)) {
+				results.add(event);
+			} else if (eventsCounter.get(event) >= frequency) {
+				results.add(event);
 			}
 		}
-		return output;
+		return removeEmptyMethods(results);
 	}
 
 	private Map<Event, Integer> counter(List<Event> stream) {
@@ -91,11 +107,12 @@ public class EventsFilter {
 				.newLinkedHashMap();
 
 		EventStreamGenerator esg = new EventStreamGenerator();
-		List<Triplet<String, Event, List<Event>>> structure = esg
-				.generateStructure(stream);
+		Map<String, List<Tuple<Event, List<Event>>>> structure = esg
+				.fileMethodStructure(stream);
 
-		for (Triplet<String, Event, List<Event>> triplet : structure) {
-			String source = triplet.getFirst();
+		for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : structure
+				.entrySet()) {
+			String source = entry.getKey();
 			int start = source.indexOf("checkouts/");
 			String substring = source.substring(start + 1);
 			int end = substring.indexOf("/");
@@ -104,24 +121,55 @@ public class EventsFilter {
 			start = source.lastIndexOf("/");
 			end = source.lastIndexOf(".java");
 			String type = source.substring(start + 1, end);
-			
-			List<Event> method = Lists.newLinkedList();
 
-			for (Event event : triplet.getThird()) {
-				String eventType = event.getMethod().getDeclaringType()
-						.getFullName();
-				if (eventType.equals(type)) {
-					method = Lists.newLinkedList();
-					break;
-				} 
-				method.add(event);
-			}
-			if (!method.isEmpty()) {
+			if (results.containsKey(project)) {
 				results.get(project).getFirst().add(type);
-				results.get(project).getSecond().addAll(method);
+			} else {
+				Set<String> types = Sets.newLinkedHashSet();
+				types.add(type);
+				List<Event> events = Lists.newLinkedList();
+				events.add(EventGenerator.sourcePath(source));
+				results.put(project, Tuple.newTuple(types, events));
 			}
-			method = Lists.newLinkedList();
+			for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
+				results.get(project).getSecond().add(tuple.getFirst());
+				results.get(project).getSecond().addAll(tuple.getSecond());
+			}
 		}
 		return results;
+	}
+
+	private List<Event> removeEmptyMethods(List<Event> stream) {
+		List<Event> results = Lists.newLinkedList();
+
+		EventStreamGenerator esg = new EventStreamGenerator();
+		Map<String, List<Tuple<Event, List<Event>>>> structure = esg
+				.fileMethodStructure(stream);
+		for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : structure
+				.entrySet()) {
+			List<Event> classEvents = Lists.newLinkedList();
+			for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
+				if (validMethod(tuple.getSecond())) {
+					classEvents.add(tuple.getFirst());
+					classEvents.addAll(tuple.getSecond());
+				}
+			}
+			if (!classEvents.isEmpty()) {
+				results.add(EventGenerator.sourcePath(entry.getKey()));
+				results.addAll(classEvents);
+			}
+		}
+		return results;
+	}
+
+	private boolean validMethod(List<Event> method) {
+		for (Event event : method) {
+			EventKind kind = event.getKind();
+			if ((kind == EventKind.CONSTRUCTOR)
+					|| (kind == EventKind.INVOCATION)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

@@ -25,12 +25,11 @@ import cc.kave.episodes.mining.patterns.PatternFilter;
 import cc.kave.episodes.mining.patterns.SequentialPatterns;
 import cc.kave.episodes.model.Episode;
 import cc.kave.episodes.model.EpisodeType;
-import cc.kave.episodes.model.Triplet;
 import cc.kave.episodes.model.events.Event;
+import cc.recommenders.datastructures.Tuple;
 import cc.recommenders.io.Logger;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 import de.tu_darmstadt.stg.mubench.DataEdgeTypePriorityOrder;
 import de.tu_darmstadt.stg.mubench.DefaultFilterAndRankingStrategy;
@@ -81,8 +80,7 @@ public class runner {
 
 		public DetectorOutput detectViolations(DetectorArgs args,
 				DetectorOutput.Builder output) throws Exception {
-			List<Triplet<String, Event, List<Event>>> srcMapper = parser(
-					args.getTargetSrcPaths(), args.getDependencyClassPath());
+			parser(args.getTargetSrcPaths(), args.getDependencyClassPath());
 
 			ShellCommand command = new ShellCommand(new File(getEventsPath()),
 					new File(getAlgorithmPath()));
@@ -161,18 +159,21 @@ public class runner {
 
 		private Collection<APIUsageExample> loadTargetAUGs(String[] srcPaths,
 				String[] classpath) throws IOException {
-			List<Triplet<String, Event, List<Event>>> traces = parser(srcPaths,
-					classpath);
+			Map<String, List<Tuple<Event, List<Event>>>> traces = parser(
+					srcPaths, classpath);
 
 			Collection<APIUsageExample> targets = new ArrayList<>();
-			for (Triplet<String, Event, List<Event>> trace : traces) {
-				targets.add(TraceToAUGTransformer.transform(trace.getFirst(),
-						trace.getSecond(), trace.getThird()));
+			for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : traces
+					.entrySet()) {
+				for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
+					targets.add(TraceToAUGTransformer.transform(entry.getKey(),
+							tuple.getFirst(), tuple.getSecond()));
+				}
 			}
 			return targets;
 		}
 
-		private List<Triplet<String, Event, List<Event>>> parser(
+		private Map<String, List<Tuple<Event, List<Event>>>> parser(
 				String[] srcPaths, String[] classpaths) throws IOException {
 			List<Event> sequences = buildMethodTraces(srcPaths, classpaths);
 
@@ -185,8 +186,8 @@ public class runner {
 			System.out.println("Number of frequent events: " + frequent.size());
 
 			EventStreamGenerator esg = new EventStreamGenerator();
-			List<Triplet<String, Event, List<Event>>> srcMapper = esg
-					.generateStructure(frequent);
+			Map<String, List<Tuple<Event, List<Event>>>> srcMapper = esg
+					.fileMethodStructure(frequent);
 			getNoFiles(srcMapper);
 			esg.generateFiles(new File(getEventsPath()), srcMapper);
 
@@ -194,16 +195,15 @@ public class runner {
 		}
 
 		private void getNoFiles(
-				List<Triplet<String, Event, List<Event>>> srcMapper) {
-			Set<String> noSrc = Sets.newLinkedHashSet();
-			List<Event> md = Lists.newLinkedList();
+				Map<String, List<Tuple<Event, List<Event>>>> stream) {
+			int methodCounter = 0;
 
-			for (Triplet<String, Event, List<Event>> triplet : srcMapper) {
-				noSrc.add(triplet.getFirst());
-				md.add(triplet.getSecond());
+			for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : stream
+					.entrySet()) {
+				methodCounter += entry.getValue().size();
 			}
-			System.out.println("Number of classes: " + noSrc.size());
-			System.out.println("Number of methods: " + md.size());
+			System.out.println("Number of classes: " + stream.size());
+			System.out.println("Number of methods: " + methodCounter);
 		}
 
 		private List<Event> buildMethodTraces(String[] srcPaths,

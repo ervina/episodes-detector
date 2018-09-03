@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -17,12 +18,13 @@ import org.junit.rules.TemporaryFolder;
 import cc.kave.commons.model.naming.Names;
 import cc.kave.commons.utils.json.JsonUtils;
 import cc.kave.episodes.model.EventStream;
-import cc.kave.episodes.model.Triplet;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
 import cc.kave.episodes.model.events.Events;
+import cc.recommenders.datastructures.Tuple;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 
 public class EventStreamGeneratorTest {
@@ -43,8 +45,8 @@ public class EventStreamGeneratorTest {
 
 	@Test
 	public void emptyStream() {
-		List<Triplet<String, Event, List<Event>>> actuals = sut
-				.generateStructure(stream);
+		Map<String, List<Tuple<Event, List<Event>>>> actuals = sut
+				.fileMethodStructure(stream);
 
 		assertTrue(actuals.isEmpty());
 	}
@@ -68,15 +70,14 @@ public class EventStreamGeneratorTest {
 		stream.add(event2);
 
 		String srcPath = source.getMethod().getFullName();
-		List<Triplet<String, Event, List<Event>>> expected = Lists
-				.newLinkedList();
-		expected.add(new Triplet<String, Event, List<Event>>(srcPath, md, Lists
-				.newArrayList(event2, event3)));
-		expected.add(new Triplet<String, Event, List<Event>>(srcPath, event1,
-				Lists.newArrayList(event1, event3, event2)));
+		Map<String, List<Tuple<Event, List<Event>>>> expected = Maps
+				.newLinkedHashMap();
+		expected.put(srcPath, Lists.newArrayList(
+				Tuple.newTuple(md, Lists.newArrayList(event2, event3)),
+				Tuple.newTuple(event1, Lists.newArrayList(event3, event2))));
 
-		List<Triplet<String, Event, List<Event>>> actuals = sut
-				.generateStructure(stream);
+		Map<String, List<Tuple<Event, List<Event>>>> actuals = sut
+				.fileMethodStructure(stream);
 
 		assertEquals(expected, actuals);
 	}
@@ -90,24 +91,21 @@ public class EventStreamGeneratorTest {
 		Event event3 = createEvent("type1", "ctor", EventKind.CONSTRUCTOR);
 
 		String srcPath = source.getMethod().getFullName();
-		List<Triplet<String, Event, List<Event>>> structure = Lists
-				.newLinkedList();
-		structure.add(new Triplet<String, Event, List<Event>>(srcPath, md,
-				Lists.newArrayList(event2, event3)));
-		structure.add(new Triplet<String, Event, List<Event>>(srcPath, event1,
-				Lists.newArrayList(event1, event3, event2)));
+		Map<String, List<Tuple<Event, List<Event>>>> eventStream = Maps.newLinkedHashMap();
+		eventStream.put(srcPath, Lists.newLinkedList());
+		eventStream.get(srcPath).add(Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
+		eventStream.get(srcPath).add(Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
 
 		EventStream expected = new EventStream();
 		expected.addEvent(event2);
 		expected.addEvent(event3);
 		expected.increaseTimeout();
-		expected.addEvent(event1);
 		expected.addEvent(event3);
 		expected.addEvent(event2);
 		expected.increaseTimeout();
 
 		EventStream actuals = sut
-				.generateFiles(rootFolder.getRoot(), structure);
+				.generateFiles(rootFolder.getRoot(), eventStream);
 
 		assertEquals(expected.getMapping(), actuals.getMapping());
 		assertEquals(expected.getStreamText(), actuals.getStreamText());
@@ -122,12 +120,10 @@ public class EventStreamGeneratorTest {
 		Event event3 = createEvent("type1", "ctor", EventKind.CONSTRUCTOR);
 
 		String srcPath = source.getMethod().getFullName();
-		List<Triplet<String, Event, List<Event>>> eventStream = Lists
-				.newLinkedList();
-		eventStream.add(new Triplet<String, Event, List<Event>>(srcPath, md,
-				Lists.newArrayList(event2, event3)));
-		eventStream.add(new Triplet<String, Event, List<Event>>(srcPath,
-				event1, Lists.newArrayList(event3, event2)));
+		Map<String, List<Tuple<Event, List<Event>>>> eventStream = Maps.newLinkedHashMap();
+		eventStream.put(srcPath, Lists.newLinkedList());
+		eventStream.get(srcPath).add(Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
+		eventStream.get(srcPath).add(Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
 
 		sut.generateFiles(rootFolder.getRoot(), eventStream);
 
@@ -145,29 +141,26 @@ public class EventStreamGeneratorTest {
 		Event event3 = createEvent("type1", "ctor", EventKind.CONSTRUCTOR);
 
 		String srcPath = source.getMethod().getFullName();
-		List<Triplet<String, Event, List<Event>>> eventStream = Lists
-				.newLinkedList();
-		eventStream.add(new Triplet<String, Event, List<Event>>(srcPath, md,
-				Lists.newArrayList(event2, event3)));
-		eventStream.add(new Triplet<String, Event, List<Event>>(srcPath,
-				event1, Lists.newArrayList(event1, event3, event2)));
+		Map<String, List<Tuple<Event, List<Event>>>> eventStream = Maps.newLinkedHashMap();
+		eventStream.put(srcPath, Lists.newLinkedList());
+		eventStream.get(srcPath).add(Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
+		eventStream.get(srcPath).add(Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
 
 		sut.generateFiles(rootFolder.getRoot(), eventStream);
 
 		@SuppressWarnings("serial")
-		Type type1 = new TypeToken<List<Triplet<String, Event, List<Event>>>>() {
+		Type type1 = new TypeToken<Map<String, List<Tuple<Event, List<Event>>>>>() {
 		}.getType();
-		List<Triplet<String, Event, List<Event>>> actualObject = JsonUtils
+		Map<String, List<Tuple<Event, List<Event>>>> actualObject = JsonUtils
 				.fromJson(getStreamObjectPath(), type1);
 
-		String expectedStream = "1,0.000\n2,0.001\n3,5.002\n2,5.003\n1,5.004\n";
+		String expectedStream = "1,0.000\n2,0.001\n2,5.002\n1,5.003\n";
 		String actualStream = FileUtils.readFileToString(getStreamPath());
 
 		List<Event> expectedMap = Lists.newLinkedList();
 		expectedMap.add(Events.newDummyEvent());
 		expectedMap.add(event2);
 		expectedMap.add(event3);
-		expectedMap.add(event1);
 
 		Type type2 = new TypeToken<List<Event>>() {
 		}.getType();

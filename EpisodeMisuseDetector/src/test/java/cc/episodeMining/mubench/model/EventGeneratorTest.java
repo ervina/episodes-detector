@@ -30,7 +30,7 @@ public class EventGeneratorTest {
 		String file_path = "file.java";
 
 		event.setKind(EventKind.SOURCE_FILE_PATH);
-		event.setMethod(Names.newMethod("[?] [?]." + file_path + "()"));
+		event.setMethod(Names.newMethod("[?] [file]." + file_path + "()"));
 
 		Event actuals = EventGenerator.sourcePath(file_path);
 
