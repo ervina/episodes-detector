@@ -80,7 +80,8 @@ public class runner {
 
 		public DetectorOutput detectViolations(DetectorArgs args,
 				DetectorOutput.Builder output) throws Exception {
-			parser(args.getTargetSrcPaths(), args.getDependencyClassPath());
+			Map<String, List<Tuple<Event, List<Event>>>> stream = parser(
+					args.getTargetSrcPaths(), args.getDependencyClassPath());
 
 			ShellCommand command = new ShellCommand(new File(getEventsPath()),
 					new File(getAlgorithmPath()));
@@ -116,8 +117,7 @@ public class runner {
 			System.out.println("Number of patterns of APIUsage transformer: "
 					+ augPatterns.size());
 
-			Collection<APIUsageExample> targets = loadTargetAUGs(
-					args.getTargetSrcPaths(), args.getDependencyClassPath());
+			Collection<APIUsageExample> targets = loadTargetAUGs(stream);
 			AUGLabelProvider labelProvider = new BaseAUGLabelProvider();
 			MuDetect detection = new MuDetect(
 					new MinPatternActionsModel(() -> augPatterns, 2),
@@ -157,10 +157,9 @@ public class runner {
 			return counter;
 		}
 
-		private Collection<APIUsageExample> loadTargetAUGs(String[] srcPaths,
-				String[] classpath) throws IOException {
-			Map<String, List<Tuple<Event, List<Event>>>> traces = parser(
-					srcPaths, classpath);
+		private Collection<APIUsageExample> loadTargetAUGs(
+				Map<String, List<Tuple<Event, List<Event>>>> traces)
+				throws IOException {
 
 			Collection<APIUsageExample> targets = new ArrayList<>();
 			for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : traces
@@ -178,20 +177,27 @@ public class runner {
 			List<Event> sequences = buildMethodTraces(srcPaths, classpaths);
 
 			EventsFilter ef = new EventsFilter();
-			List<Event> unduplicated = ef.duplicates(sequences);
-			System.out.println("Number of events without duplicates: "
-					+ unduplicated.size());
+			List<Event> localFilter = ef.locals(sequences);
+			System.out
+					.println("Number of events without project specific APIs: "
+							+ localFilter.size());
 
-			List<Event> frequent = ef.frequent(unduplicated, FREQUENCY);
-			System.out.println("Number of frequent events: " + frequent.size());
+			List<Event> duplicateFilter = ef.duplicates(localFilter);
+			System.out.println("Number of events without duplicates: "
+					+ duplicateFilter.size());
+
+			List<Event> frequentFilter = ef
+					.frequent(duplicateFilter, FREQUENCY);
+			System.out.println("Number of frequent events: "
+					+ frequentFilter.size());
 
 			EventStreamGenerator esg = new EventStreamGenerator();
-			Map<String, List<Tuple<Event, List<Event>>>> srcMapper = esg
-					.fileMethodStructure(frequent);
-			getNoFiles(srcMapper);
-			esg.generateFiles(new File(getEventsPath()), srcMapper);
+			Map<String, List<Tuple<Event, List<Event>>>> results = esg
+					.fileMethodStructure(frequentFilter);
+			getNoFiles(results);
+			esg.generateFiles(new File(getEventsPath()), results);
 
-			return srcMapper;
+			return results;
 		}
 
 		private void getNoFiles(
