@@ -70,7 +70,7 @@ public class EventStreamGenerator {
 		return results;
 	}
 
-	public EventStream generateFiles(File path,
+	public EventStream generateFiles(File path, int frequency,
 			Map<String, List<Tuple<Event, List<Event>>>> stream)
 			throws IOException {
 		EventStream es = new EventStream();
@@ -84,26 +84,31 @@ public class EventStreamGenerator {
 				es.increaseTimeout();
 			}
 		}
-		JsonUtils.toJson(stream, getStreamObjectPath(path));
-		FileUtils.writeStringToFile(getEventStreamPath(path),
+		JsonUtils.toJson(stream, getStreamObjectPath(path, frequency));
+		FileUtils.writeStringToFile(getEventStreamPath(path, frequency),
 				es.getStreamText());
-		JsonUtils.toJson(es.getMapping(), getMapPath(path));
+		JsonUtils.toJson(es.getMapping(), getMapPath(path, frequency));
 
 		return es;
 	}
 
-	private File getEventStreamPath(File folder) {
-		String streamName = folder.getAbsolutePath() + "/stream.txt";
+	private String getPath(File folder, int frequency) {
+		String path = folder.getAbsolutePath() + "/freq" + frequency + "/";
+		return path;
+	}
+
+	private File getEventStreamPath(File folder, int frequency) {
+		String streamName = getPath(folder, frequency) + "stream.txt";
 		return new File(streamName);
 	}
 
-	private File getMapPath(File folder) {
-		String mapName = folder.getAbsolutePath() + "/mapping.txt";
+	private File getMapPath(File folder, int frequency) {
+		String mapName = getPath(folder, frequency) + "mapping.txt";
 		return new File(mapName);
 	}
 
-	private File getStreamObjectPath(File folder) {
-		String mapName = folder.getAbsolutePath() + "/object.json";
+	private File getStreamObjectPath(File folder, int frequency) {
+		String mapName = getPath(folder, frequency) + "object.json";
 		return new File(mapName);
 	}
 }

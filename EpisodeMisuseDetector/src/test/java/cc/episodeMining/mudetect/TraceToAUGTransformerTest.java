@@ -18,13 +18,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.google.common.collect.Lists;
-
 import cc.episodeMining.data.EventStreamGenerator;
 import cc.episodeMining.data.SequenceGenerator;
 import cc.kave.episodes.model.Triplet;
 import cc.kave.episodes.model.events.Event;
 import cc.recommenders.datastructures.Tuple;
+
+import com.google.common.collect.Lists;
+
 import de.tu_darmstadt.stg.mudetect.aug.model.APIUsageExample;
 
 public class TraceToAUGTransformerTest {

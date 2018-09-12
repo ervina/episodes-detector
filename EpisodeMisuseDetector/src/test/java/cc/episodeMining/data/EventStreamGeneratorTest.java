@@ -32,6 +32,8 @@ public class EventStreamGeneratorTest {
 	@Rule
 	public TemporaryFolder rootFolder = new TemporaryFolder();
 
+	public static final int FREQUENCY = 10;
+
 	List<Event> stream;
 
 	private EventStreamGenerator sut;
@@ -91,10 +93,13 @@ public class EventStreamGeneratorTest {
 		Event event3 = createEvent("type1", "ctor", EventKind.CONSTRUCTOR);
 
 		String srcPath = source.getMethod().getFullName();
-		Map<String, List<Tuple<Event, List<Event>>>> eventStream = Maps.newLinkedHashMap();
+		Map<String, List<Tuple<Event, List<Event>>>> eventStream = Maps
+				.newLinkedHashMap();
 		eventStream.put(srcPath, Lists.newLinkedList());
-		eventStream.get(srcPath).add(Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
-		eventStream.get(srcPath).add(Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
+		eventStream.get(srcPath).add(
+				Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
+		eventStream.get(srcPath).add(
+				Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
 
 		EventStream expected = new EventStream();
 		expected.addEvent(event2);
@@ -104,8 +109,8 @@ public class EventStreamGeneratorTest {
 		expected.addEvent(event2);
 		expected.increaseTimeout();
 
-		EventStream actuals = sut
-				.generateFiles(rootFolder.getRoot(), eventStream);
+		EventStream actuals = sut.generateFiles(rootFolder.getRoot(),
+				FREQUENCY, eventStream);
 
 		assertEquals(expected.getMapping(), actuals.getMapping());
 		assertEquals(expected.getStreamText(), actuals.getStreamText());
@@ -120,12 +125,15 @@ public class EventStreamGeneratorTest {
 		Event event3 = createEvent("type1", "ctor", EventKind.CONSTRUCTOR);
 
 		String srcPath = source.getMethod().getFullName();
-		Map<String, List<Tuple<Event, List<Event>>>> eventStream = Maps.newLinkedHashMap();
+		Map<String, List<Tuple<Event, List<Event>>>> eventStream = Maps
+				.newLinkedHashMap();
 		eventStream.put(srcPath, Lists.newLinkedList());
-		eventStream.get(srcPath).add(Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
-		eventStream.get(srcPath).add(Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
+		eventStream.get(srcPath).add(
+				Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
+		eventStream.get(srcPath).add(
+				Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
 
-		sut.generateFiles(rootFolder.getRoot(), eventStream);
+		sut.generateFiles(rootFolder.getRoot(), FREQUENCY, eventStream);
 
 		assertTrue(getStreamObjectPath().exists());
 		assertTrue(getStreamPath().exists());
@@ -141,12 +149,15 @@ public class EventStreamGeneratorTest {
 		Event event3 = createEvent("type1", "ctor", EventKind.CONSTRUCTOR);
 
 		String srcPath = source.getMethod().getFullName();
-		Map<String, List<Tuple<Event, List<Event>>>> eventStream = Maps.newLinkedHashMap();
+		Map<String, List<Tuple<Event, List<Event>>>> eventStream = Maps
+				.newLinkedHashMap();
 		eventStream.put(srcPath, Lists.newLinkedList());
-		eventStream.get(srcPath).add(Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
-		eventStream.get(srcPath).add(Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
+		eventStream.get(srcPath).add(
+				Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
+		eventStream.get(srcPath).add(
+				Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
 
-		sut.generateFiles(rootFolder.getRoot(), eventStream);
+		sut.generateFiles(rootFolder.getRoot(), FREQUENCY, eventStream);
 
 		@SuppressWarnings("serial")
 		Type type1 = new TypeToken<Map<String, List<Tuple<Event, List<Event>>>>>() {
@@ -179,20 +190,20 @@ public class EventStreamGeneratorTest {
 	}
 
 	private File getStreamPath() {
-		String streamName = rootFolder.getRoot().getAbsolutePath()
-				+ "/stream.txt";
+		String streamName = rootFolder.getRoot().getAbsolutePath() + "/freq"
+				+ FREQUENCY + "/stream.txt";
 		return new File(streamName);
 	}
 
 	private File getMapPath() {
-		String mapName = rootFolder.getRoot().getAbsolutePath()
-				+ "/mapping.txt";
+		String mapName = rootFolder.getRoot().getAbsolutePath() + "/freq"
+				+ FREQUENCY + "/mapping.txt";
 		return new File(mapName);
 	}
 
 	private File getStreamObjectPath() {
-		String mapName = rootFolder.getRoot().getAbsolutePath()
-				+ "/object.json";
+		String mapName = rootFolder.getRoot().getAbsolutePath() + "/freq"
+				+ FREQUENCY + "/object.json";
 		return new File(mapName);
 	}
 }

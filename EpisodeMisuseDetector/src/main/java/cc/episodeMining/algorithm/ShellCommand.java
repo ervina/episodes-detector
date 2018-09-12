@@ -14,9 +14,11 @@ public class ShellCommand {
 
 	public ShellCommand(File eventsDir, File minerDir) {
 		assertTrue(eventsDir.exists(), "Events folder does not exist");
-		assertTrue(eventsDir.isDirectory(), "Events is not a folder, but a file");
+		assertTrue(eventsDir.isDirectory(),
+				"Events is not a folder, but a file");
 		assertTrue(minerDir.exists(), "Episode miner folder does not exist");
-		assertTrue(minerDir.isDirectory(), "Episode miner is not a folder, but a file");
+		assertTrue(minerDir.isDirectory(),
+				"Episode miner is not a folder, but a file");
 		this.eventsFolder = eventsDir;
 		this.minerFolder = minerDir;
 	}
@@ -24,8 +26,8 @@ public class ShellCommand {
 	public void execute(int frequency, double entropy, int breaker)
 			throws IOException {
 		String cmd = minerFolder.getAbsolutePath() + "/./n_graph_miner "
-				+ getStreamPath() + " " + frequency + " "
-				+ entropy + " " + breaker + " " + getEpisodePath();
+				+ getStreamPath(frequency) + " " + frequency + " " + entropy
+				+ " " + breaker + " " + getEpisodePath(frequency);
 
 		System.out.println("\nRunning the miner ...");
 		String output = runCommand(cmd);
@@ -53,13 +55,18 @@ public class ShellCommand {
 		return output.toString();
 	}
 
-	private String getStreamPath() {
-		String path = eventsFolder.getAbsolutePath() + "/stream.txt";
+	private String getPath(int frequency) {
+		String path = eventsFolder.getAbsolutePath() + "/freq" + frequency;
 		return path;
 	}
 
-	private String getEpisodePath() {
-		String path = eventsFolder.getAbsolutePath() + "/episodes.txt";
+	private String getStreamPath(int frequency) {
+		String path = getPath(frequency) + "/stream.txt";
+		return path;
+	}
+
+	private String getEpisodePath(int frequency) {
+		String path = getPath(frequency) + "/episodes.txt";
 		return path;
 	}
 }
