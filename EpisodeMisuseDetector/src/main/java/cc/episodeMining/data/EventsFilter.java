@@ -19,6 +19,7 @@ public class EventsFilter {
 		List<Event> noLocals = Lists.newLinkedList();
 
 		Map<String, Tuple<Set<String>, List<Event>>> pte = projectTypeEvents(stream);
+		System.out.println("Number of classes in project-type-events: " + numClasses(pte));
 
 		for (Map.Entry<String, Tuple<Set<String>, List<Event>>> entry : pte
 				.entrySet()) {
@@ -39,6 +40,19 @@ public class EventsFilter {
 			}
 		}
 		return removeEmptyMethods(noLocals);
+	}
+
+	private int numClasses(Map<String, Tuple<Set<String>, List<Event>>> pte) {
+		int counter = 0;
+		for (Map.Entry<String, Tuple<Set<String>, List<Event>>> entry : pte.entrySet()) {
+			Tuple<Set<String>, List<Event>> tuple = entry.getValue();
+			for (Event event : tuple.getSecond()) {
+				if (event.getKind() == EventKind.SOURCE_FILE_PATH) {
+					counter++;
+				}
+			}
+		}
+		return counter;
 	}
 
 	public List<Event> duplicates(List<Event> stream) {
@@ -109,6 +123,7 @@ public class EventsFilter {
 		EventStreamGenerator esg = new EventStreamGenerator();
 		Map<String, List<Tuple<Event, List<Event>>>> structure = esg
 				.fileMethodStructure(stream);
+		System.out.println("Number of classes in file-method: " + structure.size());
 
 		for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : structure
 				.entrySet()) {
@@ -127,10 +142,9 @@ public class EventsFilter {
 			} else {
 				Set<String> types = Sets.newLinkedHashSet();
 				types.add(type);
-				List<Event> events = Lists.newLinkedList();
-				events.add(EventGenerator.sourcePath(source));
-				results.put(project, Tuple.newTuple(types, events));
+				results.put(project, Tuple.newTuple(types, Lists.newLinkedList()));
 			}
+			results.get(project).getSecond().add(EventGenerator.sourcePath(entry.getKey()));
 			for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
 				results.get(project).getSecond().add(tuple.getFirst());
 				results.get(project).getSecond().addAll(tuple.getSecond());

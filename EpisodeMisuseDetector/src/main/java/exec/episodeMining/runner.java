@@ -26,6 +26,7 @@ import cc.kave.episodes.mining.patterns.SequentialPatterns;
 import cc.kave.episodes.model.Episode;
 import cc.kave.episodes.model.EpisodeType;
 import cc.kave.episodes.model.events.Event;
+import cc.kave.episodes.model.events.EventKind;
 import cc.recommenders.datastructures.Tuple;
 import cc.recommenders.io.Logger;
 
@@ -175,12 +176,16 @@ public class runner {
 		private Map<String, List<Tuple<Event, List<Event>>>> parser(
 				String[] srcPaths, String[] classpaths) throws IOException {
 			List<Event> sequences = buildMethodTraces(srcPaths, classpaths);
+			System.out.println("Number of classes in event stream: "
+					+ numClasses(sequences));
 
 			EventsFilter ef = new EventsFilter();
 			List<Event> localFilter = ef.locals(sequences);
 			System.out
 					.println("Number of events without project specific APIs: "
 							+ localFilter.size());
+			System.out.println("Number of classes after filtering locals: "
+					+ numClasses(localFilter));
 
 			List<Event> duplicateFilter = ef.duplicates(localFilter);
 			System.out.println("Number of events without duplicates: "
@@ -198,6 +203,16 @@ public class runner {
 			esg.generateFiles(new File(getEventsPath()), FREQUENCY, results);
 
 			return results;
+		}
+
+		private int numClasses(List<Event> stream) {
+			int counter = 0;
+			for (Event event : stream) {
+				if (event.getKind() == EventKind.SOURCE_FILE_PATH) {
+					counter++;
+				}
+			}
+			return counter;
 		}
 
 		private void getNoFiles(
@@ -224,14 +239,14 @@ public class runner {
 		}
 
 		private String getEventsPath() {
-			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-//			String pathName = "/home/ervina/eventsData/";
+//			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
+			 String pathName = "/home/ervina/eventsData/";
 			return pathName;
 		}
 
 		private String getAlgorithmPath() {
-			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
-//			String path = "/home/ervina/n-graph-miner/";
+//			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
+			 String path = "/home/ervina/n-graph-miner/";
 			return path;
 		}
 	}

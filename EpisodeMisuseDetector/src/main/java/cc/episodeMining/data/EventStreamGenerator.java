@@ -47,8 +47,13 @@ public class EventStreamGenerator {
 				method = Lists.newLinkedList();
 			} else if ((kind == EventKind.METHOD_DECLARATION)
 					|| (kind == EventKind.INITIALIZER)) {
-				if ((element != null) && !method.isEmpty()) {
-					results.get(source).add(Tuple.newTuple(element, method));
+				if (!method.isEmpty()) {
+					if (element == null) {
+						results.get(source).add(Tuple.newTuple(null, method));
+					} else {
+						results.get(source)
+								.add(Tuple.newTuple(element, method));
+					}
 				}
 				element = event;
 				method = Lists.newLinkedList();
