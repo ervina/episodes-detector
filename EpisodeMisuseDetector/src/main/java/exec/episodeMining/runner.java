@@ -224,14 +224,14 @@ public class runner {
 		}
 
 		private String getEventsPath() {
-//			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-			String pathName = "/home/ervina/eventsData/";
+			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
+//			String pathName = "/home/ervina/eventsData/";
 			return pathName;
 		}
 
 		private String getAlgorithmPath() {
-//			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
-			String path = "/home/ervina/n-graph-miner/";
+			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
+//			String path = "/home/ervina/n-graph-miner/";
 			return path;
 		}
 	}

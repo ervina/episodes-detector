@@ -30,7 +30,10 @@ public class EventStreamGenerator {
 		for (Event event : stream) {
 			EventKind kind = event.getKind();
 			if (kind == EventKind.SOURCE_FILE_PATH) {
-				if (!source.isEmpty() && (element != null) && !method.isEmpty()) {
+				if (source.isEmpty()) {
+					source = event.getMethod().getFullName();
+					results.put(source, Lists.newLinkedList());
+				} else if ((element != null) && !method.isEmpty()) {
 					if (results.containsKey(source)) {
 						results.get(source)
 								.add(Tuple.newTuple(element, method));
@@ -44,14 +47,8 @@ public class EventStreamGenerator {
 				method = Lists.newLinkedList();
 			} else if ((kind == EventKind.METHOD_DECLARATION)
 					|| (kind == EventKind.INITIALIZER)) {
-				if (!source.isEmpty() && (element != null) && !method.isEmpty()) {
-					if (results.containsKey(source)) {
-						results.get(source)
-								.add(Tuple.newTuple(element, method));
-					} else {
-						results.put(source, Lists.newArrayList(Tuple.newTuple(
-								element, method)));
-					}
+				if ((element != null) && !method.isEmpty()) {
+					results.get(source).add(Tuple.newTuple(element, method));
 				}
 				element = event;
 				method = Lists.newLinkedList();

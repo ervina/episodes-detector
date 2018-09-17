@@ -66,7 +66,6 @@ public class EventStreamGeneratorTest {
 		stream.add(event2);
 		stream.add(event3);
 
-		stream.add(source);
 		stream.add(event1);
 		stream.add(event3);
 		stream.add(event2);
@@ -77,6 +76,92 @@ public class EventStreamGeneratorTest {
 		expected.put(srcPath, Lists.newArrayList(
 				Tuple.newTuple(md, Lists.newArrayList(event2, event3)),
 				Tuple.newTuple(event1, Lists.newArrayList(event3, event2))));
+
+		Map<String, List<Tuple<Event, List<Event>>>> actuals = sut
+				.fileMethodStructure(stream);
+
+		assertEquals(expected, actuals);
+	}
+
+	@Test
+	public void threeMethods() {
+		Event src = createEvent("type1", "link1", EventKind.SOURCE_FILE_PATH);
+		Event init = createEvent("type2", "cctor", EventKind.INITIALIZER);
+		Event md1 = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
+		Event md2 = createEvent("type2", "m2", EventKind.METHOD_DECLARATION);
+		Event inv = createEvent("type2", "m2", EventKind.INVOCATION);
+		Event constr = createEvent("type1", "ctor", EventKind.CONSTRUCTOR);
+
+		stream.add(src);
+		stream.add(init);
+		stream.add(constr);
+		stream.add(inv);
+
+		stream.add(md1);
+		stream.add(inv);
+
+		stream.add(md2);
+		stream.add(constr);
+
+		String srcPath = src.getMethod().getFullName();
+		Map<String, List<Tuple<Event, List<Event>>>> expected = Maps
+				.newLinkedHashMap();
+		Tuple<Event, List<Event>> tuple1 = Tuple.newTuple(init,
+				Lists.newArrayList(constr, inv));
+		Tuple<Event, List<Event>> tuple2 = Tuple.newTuple(md1,
+				Lists.newArrayList(inv));
+		Tuple<Event, List<Event>> tuple3 = Tuple.newTuple(md2,
+				Lists.newArrayList(constr));
+		expected.put(srcPath, Lists.newArrayList(tuple1, tuple2, tuple3));
+
+		Map<String, List<Tuple<Event, List<Event>>>> actuals = sut
+				.fileMethodStructure(stream);
+
+		assertEquals(expected, actuals);
+	}
+
+	@Test
+	public void threeClasses() {
+		Event src1 = createEvent("type1", "link1", EventKind.SOURCE_FILE_PATH);
+		Event src2 = createEvent("type2", "link2", EventKind.SOURCE_FILE_PATH);
+		Event src3 = createEvent("type3", "link3", EventKind.SOURCE_FILE_PATH);
+		Event md1 = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
+		Event md2 = createEvent("type2", "m2", EventKind.METHOD_DECLARATION);
+		Event init = createEvent("type2", "cctor", EventKind.INITIALIZER);
+		Event event1 = createEvent("type1", "m1", EventKind.INVOCATION);
+		Event event2 = createEvent("type2", "ctor", EventKind.CONSTRUCTOR);
+		Event event3 = createEvent("type3", "m3", EventKind.INVOCATION);
+
+		stream.add(src1);
+		stream.add(md1);
+		stream.add(event2);
+		stream.add(event1);
+
+		stream.add(src2);
+		stream.add(init);
+		stream.add(event2);
+		stream.add(event3);
+
+		stream.add(src3);
+		stream.add(md2);
+		stream.add(event2);
+		stream.add(event1);
+		stream.add(event3);
+
+		String srcPath1 = src1.getMethod().getFullName();
+		String srcPath2 = src2.getMethod().getFullName();
+		String srcPath3 = src3.getMethod().getFullName();
+		Map<String, List<Tuple<Event, List<Event>>>> expected = Maps
+				.newLinkedHashMap();
+		Tuple<Event, List<Event>> tuple = Tuple.newTuple(md1,
+				Lists.newArrayList(event2, event1));
+		expected.put(srcPath1, Lists.newArrayList(tuple));
+
+		tuple = Tuple.newTuple(init, Lists.newArrayList(event2, event3));
+		expected.put(srcPath2, Lists.newArrayList(tuple));
+
+		tuple = Tuple.newTuple(md2, Lists.newArrayList(event2, event1, event3));
+		expected.put(srcPath3, Lists.newArrayList(tuple));
 
 		Map<String, List<Tuple<Event, List<Event>>>> actuals = sut
 				.fileMethodStructure(stream);
