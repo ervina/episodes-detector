@@ -52,7 +52,7 @@ public class SequenceGenerator {
 			@Override
 			public void acceptAST(String sourceFilePath, CompilationUnit cu) {
 				
-				String relativePath = sourceFilePath.substring(sourcePath.toString().length());
+				String relativePath = "." + sourceFilePath.substring(sourcePath.toString().length());
 //				System.out.println();
 //				System.out.println("Source Path:" + sourcePath.toString());
 //				System.out.println("Source File Path " + sourceFilePath.toString());
