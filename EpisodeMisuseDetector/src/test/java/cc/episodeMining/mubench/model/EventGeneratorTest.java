@@ -29,10 +29,10 @@ public class EventGeneratorTest {
 	public void filePath() {
 		String file_path = "file.java";
 
-		event.setKind(EventKind.SOURCE_FILE_PATH);
+		event.setKind(EventKind.ABSOLUTE_PATH);
 		event.setMethod(Names.newMethod("[?] [file]." + file_path + "()"));
 
-		Event actuals = EventGenerator.sourcePath(file_path);
+		Event actuals = EventGenerator.absolutePath(file_path);
 
 		assertEquals(event, actuals);
 	}

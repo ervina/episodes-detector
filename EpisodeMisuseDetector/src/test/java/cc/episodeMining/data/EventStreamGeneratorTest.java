@@ -48,14 +48,14 @@ public class EventStreamGeneratorTest {
 	@Test
 	public void emptyStream() {
 		Map<String, List<Tuple<Event, List<Event>>>> actuals = sut
-				.fileMethodStructure(stream);
+				.absoluteFileMethodStructure(stream);
 
 		assertTrue(actuals.isEmpty());
 	}
 
 	@Test
 	public void structure() {
-		Event source = createEvent("type1", "link1", EventKind.SOURCE_FILE_PATH);
+		Event source = createEvent("type1", "link1", EventKind.ABSOLUTE_PATH);
 		Event md = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
 		Event event1 = createEvent("type2", "cctor", EventKind.INITIALIZER);
 		Event event2 = createEvent("type2", "m2", EventKind.INVOCATION);
@@ -78,14 +78,14 @@ public class EventStreamGeneratorTest {
 				Tuple.newTuple(event1, Lists.newArrayList(event3, event2))));
 
 		Map<String, List<Tuple<Event, List<Event>>>> actuals = sut
-				.fileMethodStructure(stream);
+				.absoluteFileMethodStructure(stream);
 
 		assertEquals(expected, actuals);
 	}
 
 	@Test
 	public void threeMethods() {
-		Event src = createEvent("type1", "link1", EventKind.SOURCE_FILE_PATH);
+		Event src = createEvent("type1", "link1", EventKind.ABSOLUTE_PATH);
 		Event init = createEvent("type2", "cctor", EventKind.INITIALIZER);
 		Event md1 = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
 		Event md2 = createEvent("type2", "m2", EventKind.METHOD_DECLARATION);
@@ -115,16 +115,16 @@ public class EventStreamGeneratorTest {
 		expected.put(srcPath, Lists.newArrayList(tuple1, tuple2, tuple3));
 
 		Map<String, List<Tuple<Event, List<Event>>>> actuals = sut
-				.fileMethodStructure(stream);
+				.absoluteFileMethodStructure(stream);
 
 		assertEquals(expected, actuals);
 	}
 
 	@Test
 	public void threeClasses() {
-		Event src1 = createEvent("type1", "link1", EventKind.SOURCE_FILE_PATH);
-		Event src2 = createEvent("type2", "link2", EventKind.SOURCE_FILE_PATH);
-		Event src3 = createEvent("type3", "link3", EventKind.SOURCE_FILE_PATH);
+		Event src1 = createEvent("type1", "link1", EventKind.ABSOLUTE_PATH);
+		Event src2 = createEvent("type2", "link2", EventKind.ABSOLUTE_PATH);
+		Event src3 = createEvent("type3", "link3", EventKind.ABSOLUTE_PATH);
 		Event md1 = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
 		Event md2 = createEvent("type2", "m2", EventKind.METHOD_DECLARATION);
 		Event init = createEvent("type2", "cctor", EventKind.INITIALIZER);
@@ -164,14 +164,14 @@ public class EventStreamGeneratorTest {
 		expected.put(srcPath3, Lists.newArrayList(tuple));
 
 		Map<String, List<Tuple<Event, List<Event>>>> actuals = sut
-				.fileMethodStructure(stream);
+				.absoluteFileMethodStructure(stream);
 
 		assertEquals(expected, actuals);
 	}
 
 	@Test
 	public void eventstream() throws IOException {
-		Event source = createEvent("type1", "link1", EventKind.SOURCE_FILE_PATH);
+		Event source = createEvent("type1", "link1", EventKind.ABSOLUTE_PATH);
 		Event md = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
 		Event event1 = createEvent("type2", "cctor", EventKind.INITIALIZER);
 		Event event2 = createEvent("type2", "m2", EventKind.INVOCATION);
@@ -203,7 +203,7 @@ public class EventStreamGeneratorTest {
 
 	@Test
 	public void filesCreated() throws IOException {
-		Event source = createEvent("type1", "link1", EventKind.SOURCE_FILE_PATH);
+		Event source = createEvent("type1", "link1", EventKind.ABSOLUTE_PATH);
 		Event md = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
 		Event event1 = createEvent("type2", "cctor", EventKind.INITIALIZER);
 		Event event2 = createEvent("type2", "m2", EventKind.INVOCATION);
@@ -227,7 +227,7 @@ public class EventStreamGeneratorTest {
 
 	@Test
 	public void filesContent() throws IOException {
-		Event source = createEvent("type1", "link1", EventKind.SOURCE_FILE_PATH);
+		Event source = createEvent("type1", "link1", EventKind.ABSOLUTE_PATH);
 		Event md = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
 		Event event1 = createEvent("type2", "cctor", EventKind.INITIALIZER);
 		Event event2 = createEvent("type2", "m2", EventKind.INVOCATION);

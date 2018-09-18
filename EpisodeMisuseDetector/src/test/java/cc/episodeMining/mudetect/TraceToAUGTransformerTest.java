@@ -129,7 +129,7 @@ public class TraceToAUGTransformerTest {
 				sourceFile, classpath);
 		EventStreamGenerator eventStreamGenerator = new EventStreamGenerator();
 		Map<String, List<Tuple<Event, List<Event>>>> srcMapping = eventStreamGenerator
-				.fileMethodStructure(trace);
+				.absoluteFileMethodStructure(trace);
 
 		assertTrue(srcMapping.size() == 1);
 

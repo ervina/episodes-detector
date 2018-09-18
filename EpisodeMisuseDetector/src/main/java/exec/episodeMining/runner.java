@@ -176,39 +176,73 @@ public class runner {
 		private Map<String, List<Tuple<Event, List<Event>>>> parser(
 				String[] srcPaths, String[] classpaths) throws IOException {
 			List<Event> sequences = buildMethodTraces(srcPaths, classpaths);
-			System.out.println("Number of classes in event stream: "
-					+ numClasses(sequences));
+			System.out.println("Number of absolute classes in event stream: "
+					+ numAbsClasses(sequences));
+			System.out.println("Number of relative classes in event stream: "
+					+ numRelClasses(sequences));
 
 			EventsFilter ef = new EventsFilter();
 			List<Event> localFilter = ef.locals(sequences);
 			System.out
 					.println("Number of events without project specific APIs: "
 							+ localFilter.size());
-			System.out.println("Number of classes after filtering locals: "
-					+ numClasses(localFilter));
+			System.out
+					.println("Number of absolute classes after filtering locals: "
+							+ numAbsClasses(localFilter));
+			System.out
+					.println("Number of relative classes after filtering locals: "
+							+ numRelClasses(localFilter));
 
 			List<Event> duplicateFilter = ef.duplicates(localFilter);
 			System.out.println("Number of events without duplicates: "
 					+ duplicateFilter.size());
+			System.out
+					.println("Number of absolute classes after filtering duplicates: "
+							+ numAbsClasses(duplicateFilter));
+			System.out
+					.println("Number of relative classes after filtering duplicates: "
+							+ numRelClasses(duplicateFilter));
 
 			List<Event> frequentFilter = ef
 					.frequent(duplicateFilter, FREQUENCY);
 			System.out.println("Number of frequent events: "
 					+ frequentFilter.size());
+			System.out
+					.println("Number of absolute classes after filtering infrequent events "
+							+ numAbsClasses(frequentFilter));
+			System.out
+			.println("Number of relative classes after filtering infrequent events "
+					+ numRelClasses(frequentFilter));
 
 			EventStreamGenerator esg = new EventStreamGenerator();
-			Map<String, List<Tuple<Event, List<Event>>>> results = esg
-					.fileMethodStructure(frequentFilter);
-			getNoFiles(results);
-			esg.generateFiles(new File(getEventsPath()), FREQUENCY, results);
+			Map<String, List<Tuple<Event, List<Event>>>> absPath = esg
+					.absoluteFileMethodStructure(frequentFilter);
+			System.out.println("After all filters, absolute path "
+					+ absPath.size());
+			Map<String, List<Tuple<Event, List<Event>>>> relPath = esg
+					.relativeFileMethodStructure(absPath);
+			System.out.println("After all filters, relative path "
+					+ relPath.size());
+			getNoFiles(relPath);
+			esg.generateFiles(new File(getEventsPath()), FREQUENCY, relPath);
 
-			return results;
+			return relPath;
 		}
 
-		private int numClasses(List<Event> stream) {
+		private int numAbsClasses(List<Event> stream) {
 			int counter = 0;
 			for (Event event : stream) {
-				if (event.getKind() == EventKind.SOURCE_FILE_PATH) {
+				if (event.getKind() == EventKind.ABSOLUTE_PATH) {
+					counter++;
+				}
+			}
+			return counter;
+		}
+
+		private int numRelClasses(List<Event> stream) {
+			int counter = 0;
+			for (Event event : stream) {
+				if (event.getKind() == EventKind.RELATIVE_PATH) {
 					counter++;
 				}
 			}

@@ -46,7 +46,7 @@ public class SequenceGeneratorTest {
 		FileUtils.writeStringToFile(getFileName("test.java"), code);
 		
 		List<Event> expected = Lists.newLinkedList();
-		expected.add(createEvent("[?] [test]." + rootFolder.getRoot() + "/test.java", EventKind.SOURCE_FILE_PATH));
+		expected.add(createEvent("[?] [test]." + rootFolder.getRoot() + "/test.java", EventKind.ABSOLUTE_PATH));
 		expected.add(createEvent("[?] [C].m", EventKind.METHOD_DECLARATION));
 		expected.add(createEvent("[?] [Object].hashCode", EventKind.INVOCATION));
 		
@@ -65,7 +65,7 @@ public class SequenceGeneratorTest {
 		FileUtils.writeStringToFile(getFileName("test.java"), code);
 		
 		List<Event> expected = Lists.newLinkedList();
-		expected.add(createEvent("[?] [test]." + rootFolder.getRoot() + "/test.java", EventKind.SOURCE_FILE_PATH));
+		expected.add(createEvent("[?] [test]." + rootFolder.getRoot() + "/test.java", EventKind.ABSOLUTE_PATH));
 		expected.add(createEvent("[?] [C].m", EventKind.METHOD_DECLARATION));
 		expected.add(createEvent("[?] [Object].hashCode", EventKind.INVOCATION));
 		expected.add(createEvent("[?] [C].n", EventKind.METHOD_DECLARATION));
@@ -88,7 +88,7 @@ public class SequenceGeneratorTest {
 		FileUtils.writeStringToFile(getFileName("test.java"), code);
 		
 		List<Event> expected = Lists.newLinkedList();
-		expected.add(createEvent("[?] [test]." + rootFolder.getRoot() + "/test.java", EventKind.SOURCE_FILE_PATH));
+		expected.add(createEvent("[?] [test]." + rootFolder.getRoot() + "/test.java", EventKind.ABSOLUTE_PATH));
 		expected.add(createEvent("[?] [C]..cctor", EventKind.INITIALIZER));
 		expected.add(createEvent("[?] [Object]..ctor", EventKind.CONSTRUCTOR));
 		expected.add(createEvent("[?] [Object].hashCode", EventKind.INVOCATION));
@@ -128,11 +128,11 @@ public class SequenceGeneratorTest {
 		FileUtils.writeStringToFile(getFileName("test1.java"), method2);
 		
 		List<Event> expected = Lists.newLinkedList();
-		expected.add(createEvent("[?] [test]." + rootFolder.getRoot().getAbsolutePath() + "/test.java", EventKind.SOURCE_FILE_PATH));
+		expected.add(createEvent("[?] [test]." + rootFolder.getRoot().getAbsolutePath() + "/test.java", EventKind.ABSOLUTE_PATH));
 		expected.add(createEvent("[?] [C].m", EventKind.METHOD_DECLARATION));
 		expected.add(createEvent("[?] [Object].hashCode", EventKind.INVOCATION));
 		
-		expected.add(createEvent("[?] [test1]." + rootFolder.getRoot().getAbsolutePath() + "/test1.java", EventKind.SOURCE_FILE_PATH));
+		expected.add(createEvent("[?] [test1]." + rootFolder.getRoot().getAbsolutePath() + "/test1.java", EventKind.ABSOLUTE_PATH));
 		expected.add(createEvent("[?] [NullTextNull].pattern", EventKind.METHOD_DECLARATION));
 		expected.add(createEvent("[?] [StrBuilder].pattern", EventKind.SUPER_DECLARATION));
 		expected.add(createEvent("[?] [StrBuilder].getNullText", EventKind.INVOCATION));
@@ -169,7 +169,7 @@ public class SequenceGeneratorTest {
 		FileUtils.writeStringToFile(getFileName("test.java"), method);
 		
 		List<Event> expected = Lists.newLinkedList();
-		expected.add(createEvent("[?] [test]." + rootFolder.getRoot().getAbsolutePath() + "/test.java", EventKind.SOURCE_FILE_PATH));
+		expected.add(createEvent("[?] [test]." + rootFolder.getRoot().getAbsolutePath() + "/test.java", EventKind.ABSOLUTE_PATH));
 		expected.add(createEvent("[?] [NullTextNull].pattern", EventKind.METHOD_DECLARATION));
 		expected.add(createEvent("[?] [StrBuilder].pattern", EventKind.FIRST_DECLARATION));
 		expected.add(createEvent("[?] [StrBuilder].getNullText", EventKind.INVOCATION));

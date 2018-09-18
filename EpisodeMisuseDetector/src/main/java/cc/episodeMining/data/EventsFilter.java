@@ -19,14 +19,20 @@ public class EventsFilter {
 		List<Event> noLocals = Lists.newLinkedList();
 
 		Map<String, Tuple<Set<String>, List<Event>>> pte = projectTypeEvents(stream);
-		System.out.println("Number of classes in project-type-events: " + numClasses(pte));
+		System.out
+				.println("Number of absolute classes in project-type-events: "
+						+ numAbsClasses(pte));
+		System.out
+				.println("Number of relative classes in project-type-events: "
+						+ numRelClasses(pte));
 
 		for (Map.Entry<String, Tuple<Set<String>, List<Event>>> entry : pte
 				.entrySet()) {
 			Tuple<Set<String>, List<Event>> tuple = entry.getValue();
 			for (Event event : tuple.getSecond()) {
 				EventKind kind = event.getKind();
-				if ((kind == EventKind.SOURCE_FILE_PATH)
+				if ((kind == EventKind.ABSOLUTE_PATH)
+						|| (kind == EventKind.RELATIVE_PATH)
 						|| (kind == EventKind.METHOD_DECLARATION)
 						|| (kind == EventKind.INITIALIZER)) {
 					noLocals.add(event);
@@ -42,12 +48,27 @@ public class EventsFilter {
 		return removeEmptyMethods(noLocals);
 	}
 
-	private int numClasses(Map<String, Tuple<Set<String>, List<Event>>> pte) {
+	private int numAbsClasses(Map<String, Tuple<Set<String>, List<Event>>> pte) {
 		int counter = 0;
-		for (Map.Entry<String, Tuple<Set<String>, List<Event>>> entry : pte.entrySet()) {
+		for (Map.Entry<String, Tuple<Set<String>, List<Event>>> entry : pte
+				.entrySet()) {
 			Tuple<Set<String>, List<Event>> tuple = entry.getValue();
 			for (Event event : tuple.getSecond()) {
-				if (event.getKind() == EventKind.SOURCE_FILE_PATH) {
+				if (event.getKind() == EventKind.ABSOLUTE_PATH) {
+					counter++;
+				}
+			}
+		}
+		return counter;
+	}
+
+	private int numRelClasses(Map<String, Tuple<Set<String>, List<Event>>> pte) {
+		int counter = 0;
+		for (Map.Entry<String, Tuple<Set<String>, List<Event>>> entry : pte
+				.entrySet()) {
+			Tuple<Set<String>, List<Event>> tuple = entry.getValue();
+			for (Event event : tuple.getSecond()) {
+				if (event.getKind() == EventKind.RELATIVE_PATH) {
 					counter++;
 				}
 			}
@@ -61,7 +82,7 @@ public class EventsFilter {
 		List<Event> code = Lists.newLinkedList();
 
 		for (Event event : stream) {
-			if (event.getKind() == EventKind.SOURCE_FILE_PATH) {
+			if (event.getKind() == EventKind.ABSOLUTE_PATH) {
 				if ((source != null) && !code.isEmpty()) {
 					results.add(source);
 					results.addAll(code);
@@ -90,7 +111,8 @@ public class EventsFilter {
 
 		for (Event event : stream) {
 			EventKind kind = event.getKind();
-			if ((kind == EventKind.SOURCE_FILE_PATH)
+			if ((kind == EventKind.ABSOLUTE_PATH)
+					|| (kind == EventKind.RELATIVE_PATH)
 					|| (kind == EventKind.METHOD_DECLARATION)
 					|| (kind == EventKind.INITIALIZER)) {
 				results.add(event);
@@ -122,8 +144,11 @@ public class EventsFilter {
 
 		EventStreamGenerator esg = new EventStreamGenerator();
 		Map<String, List<Tuple<Event, List<Event>>>> structure = esg
-				.fileMethodStructure(stream);
-		System.out.println("Number of classes in file-method: " + structure.size());
+				.absoluteFileMethodStructure(stream);
+		System.out.println("Absolute classes in file-method: "
+				+ structure.size());
+		System.out.println("Relative classes in file-method "
+				+ getNumRelClasses(structure));
 
 		for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : structure
 				.entrySet()) {
@@ -142,15 +167,35 @@ public class EventsFilter {
 			} else {
 				Set<String> types = Sets.newLinkedHashSet();
 				types.add(type);
-				results.put(project, Tuple.newTuple(types, Lists.newLinkedList()));
+				results.put(project,
+						Tuple.newTuple(types, Lists.newLinkedList()));
 			}
-			results.get(project).getSecond().add(EventGenerator.sourcePath(entry.getKey()));
+			results.get(project).getSecond()
+					.add(EventGenerator.absolutePath(entry.getKey()));
 			for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
-				results.get(project).getSecond().add(tuple.getFirst());
+				if (tuple.getFirst() != null) {
+					results.get(project).getSecond().add(tuple.getFirst());
+				}
 				results.get(project).getSecond().addAll(tuple.getSecond());
 			}
 		}
 		return results;
+	}
+
+	private int getNumRelClasses(
+			Map<String, List<Tuple<Event, List<Event>>>> structure) {
+		int counter = 0;
+		for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : structure
+				.entrySet()) {
+			for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
+				for (Event event : tuple.getSecond()) {
+					if (event.getKind() == EventKind.RELATIVE_PATH) {
+						counter++;
+					}
+				}
+			}
+		}
+		return counter;
 	}
 
 	private List<Event> removeEmptyMethods(List<Event> stream) {
@@ -158,7 +203,7 @@ public class EventsFilter {
 
 		EventStreamGenerator esg = new EventStreamGenerator();
 		Map<String, List<Tuple<Event, List<Event>>>> structure = esg
-				.fileMethodStructure(stream);
+				.absoluteFileMethodStructure(stream);
 		for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : structure
 				.entrySet()) {
 			List<Event> classEvents = Lists.newLinkedList();
@@ -166,14 +211,28 @@ public class EventsFilter {
 				if (validMethod(tuple.getSecond())) {
 					classEvents.add(tuple.getFirst());
 					classEvents.addAll(tuple.getSecond());
+				} else {
+					Event relativePath = checkRelativePath(tuple.getSecond());
+					if (relativePath != null) {
+						classEvents.add(relativePath);
+					}
 				}
 			}
-			if (!classEvents.isEmpty()) {
-				results.add(EventGenerator.sourcePath(entry.getKey()));
+			if (classEvents.size() > 1) {
+				results.add(EventGenerator.absolutePath(entry.getKey()));
 				results.addAll(classEvents);
 			}
 		}
 		return results;
+	}
+
+	private Event checkRelativePath(List<Event> method) {
+		for (Event event : method) {
+			if (event.getKind() == EventKind.RELATIVE_PATH) {
+				return event;
+			}
+		}
+		return null;
 	}
 
 	private boolean validMethod(List<Event> method) {

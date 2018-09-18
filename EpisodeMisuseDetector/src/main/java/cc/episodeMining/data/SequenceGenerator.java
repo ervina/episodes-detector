@@ -52,8 +52,14 @@ public class SequenceGenerator {
 			@Override
 			public void acceptAST(String sourceFilePath, CompilationUnit cu) {
 				
-				stream.add(EventGenerator.sourcePath(sourceFilePath));
-
+				String relativePath = sourceFilePath.substring(sourcePath.toString().length());
+//				System.out.println();
+//				System.out.println("Source Path:" + sourcePath.toString());
+//				System.out.println("Source File Path " + sourceFilePath.toString());
+//				System.out.println("Relative path: " + relativePath);
+				stream.add(EventGenerator.absolutePath(sourceFilePath));
+				stream.add(EventGenerator.relativePath(relativePath));
+				
 				cu.accept(new ASTVisitor() {
 					@Override
 					public boolean visit(MethodDeclaration node) {

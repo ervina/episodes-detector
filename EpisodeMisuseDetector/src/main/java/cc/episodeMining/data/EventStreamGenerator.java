@@ -18,42 +18,33 @@ import com.google.common.collect.Maps;
 
 public class EventStreamGenerator {
 
-	public Map<String, List<Tuple<Event, List<Event>>>> fileMethodStructure(
+	public Map<String, List<Tuple<Event, List<Event>>>> absoluteFileMethodStructure(
 			List<Event> stream) {
 		Map<String, List<Tuple<Event, List<Event>>>> results = Maps
 				.newLinkedHashMap();
 
-		String source = "";
+		String absPath = "";
 		Event element = null;
 		List<Event> method = Lists.newLinkedList();
 
 		for (Event event : stream) {
 			EventKind kind = event.getKind();
-			if (kind == EventKind.SOURCE_FILE_PATH) {
-				if (source.isEmpty()) {
-					source = event.getMethod().getFullName();
-					results.put(source, Lists.newLinkedList());
-				} else if ((element != null) && !method.isEmpty()) {
-					if (results.containsKey(source)) {
-						results.get(source)
-								.add(Tuple.newTuple(element, method));
-					} else {
-						results.put(source, Lists.newArrayList(Tuple.newTuple(
-								element, method)));
-					}
+			if (kind == EventKind.ABSOLUTE_PATH) {
+				if (!absPath.isEmpty() && (element != null)
+						&& !method.isEmpty()) {
+					results.get(absPath).add(Tuple.newTuple(element, method));
 				}
-				source = event.getMethod().getFullName();
+				absPath = event.getMethod().getFullName();
+				results.put(absPath, Lists.newLinkedList());
 				element = null;
 				method = Lists.newLinkedList();
+			} else if (kind == EventKind.RELATIVE_PATH) {
+				results.get(absPath).add(
+						Tuple.newTuple(null, Lists.newArrayList(event)));
 			} else if ((kind == EventKind.METHOD_DECLARATION)
 					|| (kind == EventKind.INITIALIZER)) {
-				if (!method.isEmpty()) {
-					if (element == null) {
-						results.get(source).add(Tuple.newTuple(null, method));
-					} else {
-						results.get(source)
-								.add(Tuple.newTuple(element, method));
-					}
+				if ((element != null) && !method.isEmpty()) {
+					results.get(absPath).add(Tuple.newTuple(element, method));
 				}
 				element = event;
 				method = Lists.newLinkedList();
@@ -61,13 +52,30 @@ public class EventStreamGenerator {
 				method.add(event);
 			}
 		}
-		if (!source.isEmpty() && (element != null) && !method.isEmpty()) {
-			if (results.containsKey(source)) {
-				results.get(source).add(Tuple.newTuple(element, method));
-			} else {
-				results.put(source,
-						Lists.newArrayList(Tuple.newTuple(element, method)));
+		if (!absPath.isEmpty() && (element != null) && !method.isEmpty()) {
+			results.get(absPath).add(Tuple.newTuple(element, method));
+		}
+		return results;
+	}
+
+	public Map<String, List<Tuple<Event, List<Event>>>> relativeFileMethodStructure(
+			Map<String, List<Tuple<Event, List<Event>>>> stream) {
+		Map<String, List<Tuple<Event, List<Event>>>> results = Maps
+				.newLinkedHashMap();
+		for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : stream
+				.entrySet()) {
+			Event relativePath = getRelativePath(entry.getValue());
+			if (relativePath == null) {
+				System.err.println("Can't find relative path");
 			}
+			List<Tuple<Event, List<Event>>> classEvents = Lists.newLinkedList();
+			for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
+				if (tuple.getFirst() != null) {
+					classEvents.add(tuple);
+				}
+			}
+			results.put(relativePath.getMethod().getFullName(),
+					classEvents);
 		}
 		return results;
 	}
@@ -81,7 +89,9 @@ public class EventStreamGenerator {
 				.entrySet()) {
 			for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
 				for (Event event : tuple.getSecond()) {
-					es.addEvent(event);
+					if (event.getKind() != EventKind.RELATIVE_PATH) {
+						es.addEvent(event);
+					}
 				}
 				es.increaseTimeout();
 			}
@@ -92,6 +102,17 @@ public class EventStreamGenerator {
 		JsonUtils.toJson(es.getMapping(), getMapPath(path, frequency));
 
 		return es;
+	}
+
+	private Event getRelativePath(List<Tuple<Event, List<Event>>> events) {
+		for (Tuple<Event, List<Event>> tuple : events) {
+			for (Event e : tuple.getSecond()) {
+				if (e.getKind() == EventKind.RELATIVE_PATH) {
+					return e;
+				}
+			}
+		}
+		return null;
 	}
 
 	private String getPath(File folder, int frequency) {
