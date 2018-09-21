@@ -63,11 +63,11 @@ public class runner {
 
 	private static FileReader reader = new FileReader();
 
-	private static final int FREQUENCY = 20;
+	private static final int FREQUENCY = 5;
 	private static final double ENTROPY = 0.5;
 	private static final int BREAKER = 5000;
 
-	private static final int THRESHFREQ = 20;
+	private static final int THRESHFREQ = 5;
 	private static final double THRESHENT = 0.5;
 	private static final double THRESHSUBP = 1.0;
 
@@ -275,14 +275,14 @@ public class runner {
 		}
 
 		private String getEventsPath() {
-			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-//			String pathName = "/home/ervina/eventsData/";
+//			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
+			String pathName = "/home/ervina/eventsData/test/";
 			return pathName;
 		}
 
 		private String getAlgorithmPath() {
-			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
-//			String path = "/home/ervina/n-graph-miner/";
+//			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
+			String path = "/home/ervina/n-graph-miner/";
 			return path;
 		}
 	}
