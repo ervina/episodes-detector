@@ -9,7 +9,7 @@ import java.util.Iterator;
 
 public class TransformerUtils {
     public static MethodCallNode createCallNode(IMethodName method) {
-        return new MethodCallNode(getTypeName(method.getDeclaringType()), getMethodSignature(method));
+        return new MethodCallNode(getTypeName(method.getDeclaringType()), getMethodSignature(method), -1);
     }
 
     private static String getTypeName(ITypeName typeName) {

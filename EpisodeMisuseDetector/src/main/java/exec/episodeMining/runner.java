@@ -63,11 +63,11 @@ public class runner {
 
 	private static FileReader reader = new FileReader();
 
-	private static final int FREQUENCY = 50;
+	private static final int FREQUENCY = 20;
 	private static final double ENTROPY = 0.5;
 	private static final int BREAKER = 5000;
 
-	private static final int THRESHFREQ = 50;
+	private static final int THRESHFREQ = 20;
 	private static final double THRESHENT = 0.5;
 	private static final double THRESHSUBP = 1.0;
 
@@ -83,6 +83,8 @@ public class runner {
 				DetectorOutput.Builder output) throws Exception {
 			Map<String, List<Tuple<Event, List<Event>>>> stream = parser(
 					args.getTargetSrcPaths(), args.getDependencyClassPath());
+//			specific per project:
+//			args.getAdditionalOutputPath()
 
 			ShellCommand command = new ShellCommand(new File(getEventsPath()),
 					new File(getAlgorithmPath()));
@@ -211,8 +213,8 @@ public class runner {
 					.println("Number of absolute classes after filtering infrequent events "
 							+ numAbsClasses(frequentFilter));
 			System.out
-			.println("Number of relative classes after filtering infrequent events "
-					+ numRelClasses(frequentFilter));
+					.println("Number of relative classes after filtering infrequent events "
+							+ numRelClasses(frequentFilter));
 
 			EventStreamGenerator esg = new EventStreamGenerator();
 			Map<String, List<Tuple<Event, List<Event>>>> absPath = esg
@@ -273,14 +275,14 @@ public class runner {
 		}
 
 		private String getEventsPath() {
-//			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-			 String pathName = "/home/ervina/eventsData/";
+			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
+//			String pathName = "/home/ervina/eventsData/";
 			return pathName;
 		}
 
 		private String getAlgorithmPath() {
-//			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
-			 String path = "/home/ervina/n-graph-miner/";
+			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
+//			String path = "/home/ervina/n-graph-miner/";
 			return path;
 		}
 	}

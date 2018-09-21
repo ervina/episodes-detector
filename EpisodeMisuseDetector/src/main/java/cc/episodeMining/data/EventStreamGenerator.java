@@ -64,18 +64,11 @@ public class EventStreamGenerator {
 				.newLinkedHashMap();
 		for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : stream
 				.entrySet()) {
-			Event relativePath = getRelativePath(entry.getValue());
-			if (relativePath == null) {
-				System.err.println("Can't find relative path");
-			}
-			List<Tuple<Event, List<Event>>> classEvents = Lists.newLinkedList();
-			for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
-				if (tuple.getFirst() != null) {
-					classEvents.add(tuple);
-				}
-			}
-			results.put(relativePath.getMethod().getFullName(),
-					classEvents);
+			String relativePath = entry.getValue().get(0).getSecond().get(0)
+					.getMethod().getFullName();
+			List<Tuple<Event, List<Event>>> events = entry.getValue().subList(
+					1, entry.getValue().size());
+			results.put(relativePath, events);
 		}
 		return results;
 	}
@@ -102,17 +95,6 @@ public class EventStreamGenerator {
 		JsonUtils.toJson(es.getMapping(), getMapPath(path, frequency));
 
 		return es;
-	}
-
-	private Event getRelativePath(List<Tuple<Event, List<Event>>> events) {
-		for (Tuple<Event, List<Event>> tuple : events) {
-			for (Event e : tuple.getSecond()) {
-				if (e.getKind() == EventKind.RELATIVE_PATH) {
-					return e;
-				}
-			}
-		}
-		return null;
 	}
 
 	private String getPath(File folder, int frequency) {
