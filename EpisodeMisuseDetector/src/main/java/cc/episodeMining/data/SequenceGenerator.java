@@ -67,6 +67,8 @@ public class SequenceGenerator {
 						ASTNode parent = node.getParent();
 
 						IMethodBinding binding = node.resolveBinding();
+//						adding the parameter types
+//						binding.getParameterTypes()
 
 						firstCtx = null;
 						superCtx = null;

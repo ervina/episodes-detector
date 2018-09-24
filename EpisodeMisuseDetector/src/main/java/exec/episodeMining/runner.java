@@ -16,6 +16,7 @@ import cc.episodeMining.data.EventsFilter;
 import cc.episodeMining.data.SequenceGenerator;
 import cc.episodeMining.mudetect.EpisodesToPatternTransformer;
 import cc.episodeMining.mudetect.TraceToAUGTransformer;
+import cc.kave.commons.model.naming.codeelements.IMethodName;
 import cc.kave.episodes.io.EpisodeParser;
 import cc.kave.episodes.io.EventStreamIo;
 import cc.kave.episodes.io.FileReader;
@@ -63,11 +64,11 @@ public class runner {
 
 	private static FileReader reader = new FileReader();
 
-	private static final int FREQUENCY = 5;
+	private static final int FREQUENCY = 10;
 	private static final double ENTROPY = 0.5;
 	private static final int BREAKER = 5000;
 
-	private static final int THRESHFREQ = 5;
+	private static final int THRESHFREQ = 10;
 	private static final double THRESHENT = 0.5;
 	private static final double THRESHSUBP = 1.0;
 
@@ -83,73 +84,85 @@ public class runner {
 				DetectorOutput.Builder output) throws Exception {
 			Map<String, List<Tuple<Event, List<Event>>>> stream = parser(
 					args.getTargetSrcPaths(), args.getDependencyClassPath());
-//			specific per project:
-//			args.getAdditionalOutputPath()
+			// specific per project:
+			// args.getAdditionalOutputPath()
 
-			ShellCommand command = new ShellCommand(new File(getEventsPath()),
-					new File(getAlgorithmPath()));
-			command.execute(FREQUENCY, ENTROPY, BREAKER);
-
-			EpisodeParser episodeParser = new EpisodeParser(new File(
-					getEventsPath()), reader);
-			Map<Integer, Set<Episode>> episodes = episodeParser
-					.parser(FREQUENCY);
-			System.out.println("Maximal episode size " + episodes.size());
-			System.out.println("Number of episodes: " + counter(episodes));
-
-			PatternFilter patternFilter = new PatternFilter(
-					new PartialPatterns(), new SequentialPatterns(),
-					new ParallelPatterns());
-			Map<Integer, Set<Episode>> superepisodes = patternFilter
-					.subEpisodes(episodes, THRESHSUBP);
-			System.out
-					.println("Number of episodes after filtering subepisodes: "
-							+ counter(superepisodes));
-			Map<Integer, Set<Episode>> patterns = patternFilter.filter(
-					EpisodeType.GENERAL, superepisodes, THRESHFREQ, THRESHENT);
-			System.out.println("Number of patterns: " + counter(patterns));
+			 ShellCommand command = new ShellCommand(new
+			 File(getEventsPath()),
+			 new File(getAlgorithmPath()));
+			 command.execute(FREQUENCY, ENTROPY, BREAKER);
+			
+			 EpisodeParser episodeParser = new EpisodeParser(new File(
+			 getEventsPath()), reader);
+			 Map<Integer, Set<Episode>> episodes = episodeParser
+			 .parser(FREQUENCY);
+			 System.out.println("Maximal episode size " + episodes.size());
+			 System.out.println("Number of episodes: " + counter(episodes));
+			
+			 PatternFilter patternFilter = new PatternFilter(
+			 new PartialPatterns(), new SequentialPatterns(),
+			 new ParallelPatterns());
+			 Map<Integer, Set<Episode>> superepisodes = patternFilter
+			 .subEpisodes(episodes, THRESHSUBP);
+			 System.out
+			 .println("Number of episodes after filtering subepisodes: "
+			 + counter(superepisodes));
+			 Map<Integer, Set<Episode>> patterns = patternFilter.filter(
+			 EpisodeType.GENERAL, superepisodes, THRESHFREQ, THRESHENT);
+			 System.out.println("Number of patterns: " + counter(patterns));
 
 			// PatternStatistics statistics = new PatternStatistics();
 			// statistics.compute(patterns);
 			// statistics.DiscNodes(patterns);
 
-			EventStreamIo esio = new EventStreamIo(new File(getEventsPath()));
-			List<Event> mapping = esio.readMapping(FREQUENCY);
-			Set<APIUsagePattern> augPatterns = new EpisodesToPatternTransformer()
-					.transform(patterns, mapping);
-			System.out.println("Number of patterns of APIUsage transformer: "
-					+ augPatterns.size());
-
-			Collection<APIUsageExample> targets = loadTargetAUGs(stream);
-			AUGLabelProvider labelProvider = new BaseAUGLabelProvider();
-			MuDetect detection = new MuDetect(
-					new MinPatternActionsModel(() -> augPatterns, 2),
-					new AlternativeMappingsOverlapsFinder(
-							new AlternativeMappingsOverlapsFinder.Config() {
-								{
-									isStartNode = super.isStartNode
-											.and(new VeryUnspecificReceiverTypePredicate()
-													.negate());
-									nodeMatcher = new EquallyLabelledNodeMatcher(
-											labelProvider);
-									edgeMatcher = new EquallyLabelledEdgeMatcher(
-											labelProvider);
-									edgeOrder = new DataEdgeTypePriorityOrder();
-									extensionEdgeTypes = new HashSet<>(Arrays
-											.asList(OrderEdge.class));
-								}
-							}),
-					new MissingElementViolationPredicate(),
-					new DefaultFilterAndRankingStrategy(
-							new WeightRankingStrategy(
-									new ProductWeightFunction(
-											new OverlapWithoutEdgesToMissingNodesWeightFunction(
-													new ConstantNodeWeightFunction()),
-											new PatternSupportWeightFunction(),
-											new ViolationSupportWeightFunction()))));
-			List<Violation> violations = detection.findViolations(targets);
-			// List<Violation> violations = Lists.newLinkedList();
+			 EventStreamIo esio = new EventStreamIo(new
+			 File(getEventsPath()));
+			 List<Event> mapping = esio.readMapping(FREQUENCY);
+			 Set<APIUsagePattern> augPatterns = new
+			 EpisodesToPatternTransformer()
+			 .transform(patterns, mapping);
+			 
+			 checkPatterns(episodes, mapping);
+			 
+			 System.out.println("Number of patterns of APIUsage transformer: "
+			 + augPatterns.size());
+			
+			 Collection<APIUsageExample> targets = loadTargetAUGs(stream);
+			 AUGLabelProvider labelProvider = new BaseAUGLabelProvider();
+			 MuDetect detection = new MuDetect(
+			 new MinPatternActionsModel(() -> augPatterns, 2),
+			 new AlternativeMappingsOverlapsFinder(
+			 new AlternativeMappingsOverlapsFinder.Config() {
+			 {
+			 isStartNode = super.isStartNode
+			 .and(new VeryUnspecificReceiverTypePredicate()
+			 .negate());
+			 nodeMatcher = new EquallyLabelledNodeMatcher(
+			 labelProvider);
+			 edgeMatcher = new EquallyLabelledEdgeMatcher(
+			 labelProvider);
+			 edgeOrder = new DataEdgeTypePriorityOrder();
+			 extensionEdgeTypes = new HashSet<>(Arrays
+			 .asList(OrderEdge.class));
+			 }
+			 }),
+			 new MissingElementViolationPredicate(),
+			 new DefaultFilterAndRankingStrategy(
+			 new WeightRankingStrategy(
+			 new ProductWeightFunction(
+			 new OverlapWithoutEdgesToMissingNodesWeightFunction(
+			 new ConstantNodeWeightFunction()),
+			 new PatternSupportWeightFunction(),
+			 new ViolationSupportWeightFunction()))));
+			 List<Violation> violations = detection.findViolations(targets);
+//			List<Violation> violations = Lists.newLinkedList();
 			return output.withFindings(violations, ViolationUtils::toFinding);
+		}
+
+		private void checkPatterns(Map<Integer, Set<Episode>> patterns,
+				List<Event> mapping) {
+			System.out.println("Method: " + mapping.get(2).getMethod().getIdentifier());
+			
 		}
 
 		private int counter(Map<Integer, Set<Episode>> patterns) {
@@ -178,57 +191,80 @@ public class runner {
 		private Map<String, List<Tuple<Event, List<Event>>>> parser(
 				String[] srcPaths, String[] classpaths) throws IOException {
 			List<Event> sequences = buildMethodTraces(srcPaths, classpaths);
-			System.out.println("Number of absolute classes in event stream: "
+			System.out.println("Number of classes in event stream: "
 					+ numAbsClasses(sequences));
-			System.out.println("Number of relative classes in event stream: "
-					+ numRelClasses(sequences));
 
 			EventsFilter ef = new EventsFilter();
-			List<Event> localFilter = ef.locals(sequences);
-			System.out
-					.println("Number of events without project specific APIs: "
-							+ localFilter.size());
-			System.out
-					.println("Number of absolute classes after filtering locals: "
-							+ numAbsClasses(localFilter));
-			System.out
-					.println("Number of relative classes after filtering locals: "
-							+ numRelClasses(localFilter));
-
-			List<Event> duplicateFilter = ef.duplicates(localFilter);
+//			List<Event> localFilter = ef.locals(sequences);
+//			System.out
+//					.println("Number of events without project specific APIs: "
+//							+ localFilter.size());
+//			System.out.println("Number of classes after filtering locals: "
+//					+ numAbsClasses(localFilter));
+//
+			List<Event> duplicateFilter = ef.duplicates(sequences);
+			
 			System.out.println("Number of events without duplicates: "
 					+ duplicateFilter.size());
-			System.out
-					.println("Number of absolute classes after filtering duplicates: "
-							+ numAbsClasses(duplicateFilter));
-			System.out
-					.println("Number of relative classes after filtering duplicates: "
-							+ numRelClasses(duplicateFilter));
+			System.out.println("Number of classes after filtering duplicates: "
+					+ numAbsClasses(duplicateFilter));
 
 			List<Event> frequentFilter = ef
 					.frequent(duplicateFilter, FREQUENCY);
 			System.out.println("Number of frequent events: "
 					+ frequentFilter.size());
 			System.out
-					.println("Number of absolute classes after filtering infrequent events "
+					.println("Number of classes after filtering infrequent events "
 							+ numAbsClasses(frequentFilter));
-			System.out
-					.println("Number of relative classes after filtering infrequent events "
-							+ numRelClasses(frequentFilter));
 
 			EventStreamGenerator esg = new EventStreamGenerator();
 			Map<String, List<Tuple<Event, List<Event>>>> absPath = esg
 					.absoluteFileMethodStructure(frequentFilter);
-			System.out.println("After all filters, absolute path "
+//			checkEventExist(sequences);
+//			getMethodOccs(absPath);
+			System.out.println("After all filters, number of classes "
 					+ absPath.size());
 			Map<String, List<Tuple<Event, List<Event>>>> relPath = esg
 					.relativeFileMethodStructure(absPath);
-			System.out.println("After all filters, relative path "
-					+ relPath.size());
 			getNoFiles(relPath);
 			esg.generateFiles(new File(getEventsPath()), FREQUENCY, relPath);
 
 			return relPath;
+		}
+
+		private void getMethodOccs(
+				Map<String, List<Tuple<Event, List<Event>>>> stream) {
+			for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : stream
+					.entrySet()) {
+				for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
+					for (Event event : tuple.getSecond()) {
+						IMethodName method = event.getMethod();
+						String typeName = method.getDeclaringType().getFullName();
+						String methodName = method.getFullName();
+						if (typeName.equalsIgnoreCase("AutoCloseable")
+								&& methodName.equalsIgnoreCase("close")) {
+							System.out.println();
+							System.out.println("Class: " + entry.getKey());
+							System.out.println("Method: " + tuple.getFirst().getMethod().getIdentifier());
+							System.out.println("Events: " + tuple.getSecond());
+							continue;
+						}
+					}
+				}
+			}
+
+		}
+
+		private void checkEventExist(List<Event> sequences) {
+			for (Event event : sequences) {
+				IMethodName method = event.getMethod();
+				String typeName = method.getDeclaringType().getFullName();
+				String methodName = method.getFullName();
+				if (typeName.equalsIgnoreCase("DBManager") && (methodName.equalsIgnoreCase("closePreparedStatement"))) {
+					System.out.println("Found" + event);
+				}
+			}
+
 		}
 
 		private int numAbsClasses(List<Event> stream) {
@@ -276,13 +312,13 @@ public class runner {
 
 		private String getEventsPath() {
 //			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-			String pathName = "/home/ervina/eventsData/test/";
+			 String pathName = "/home/ervina/eventsData/test/";
 			return pathName;
 		}
 
 		private String getAlgorithmPath() {
 //			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
-			String path = "/home/ervina/n-graph-miner/";
+			 String path = "/home/ervina/n-graph-miner/";
 			return path;
 		}
 	}
