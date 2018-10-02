@@ -45,14 +45,17 @@ public class EventsFilterTest {
 	@Test
 	public void localAPIs() {
 		stream.add(createEvent("type1", "checkouts/prj1/link1/type1.java", EventKind.ABSOLUTE_PATH));
+		stream.add(createEvent("type1", ".type1.java", EventKind.RELATIVE_PATH));
 		stream.add(createEvent("type1", "m1", EventKind.METHOD_DECLARATION));
 		stream.add(createEvent("type2", "m2", EventKind.INVOCATION));
 		
 		stream.add(createEvent("type1", "checkouts/prj2/link2/type1.java", EventKind.ABSOLUTE_PATH));
+		stream.add(createEvent("type1", ".type1.java", EventKind.RELATIVE_PATH));
 		stream.add(createEvent("type2", "..ctor", EventKind.INITIALIZER));
 		stream.add(createEvent("type1", "m1", EventKind.CONSTRUCTOR));
 		
 		expected.add(createEvent("type1", "checkouts/prj1/link1/type1.java", EventKind.ABSOLUTE_PATH));
+		stream.add(createEvent("type1", ".type1.java", EventKind.RELATIVE_PATH));
 		expected.add(createEvent("type1", "m1", EventKind.METHOD_DECLARATION));
 		expected.add(createEvent("type2", "m2", EventKind.INVOCATION));
 		
@@ -64,18 +67,22 @@ public class EventsFilterTest {
 	@Test
 	public void noDuplicates() {
 		stream.add(createEvent("type1", "link1/type1.java", EventKind.ABSOLUTE_PATH));
+		stream.add(createEvent("type1", ".type1.java", EventKind.RELATIVE_PATH));
 		stream.add(createEvent("type1", "m1", EventKind.METHOD_DECLARATION));
 		stream.add(createEvent("type2", "m2", EventKind.INVOCATION));
 		
 		stream.add(createEvent("type1", "link2/type1.java", EventKind.ABSOLUTE_PATH));
+		stream.add(createEvent("type1", ".type1.java", EventKind.RELATIVE_PATH));
 		stream.add(createEvent("type2", "..ctor", EventKind.INITIALIZER));
 		stream.add(createEvent("type1", "m1", EventKind.CONSTRUCTOR));
 		
 		expected.add(createEvent("type1", "link1/type1.java", EventKind.ABSOLUTE_PATH));
+		stream.add(createEvent("type1", ".type1.java", EventKind.RELATIVE_PATH));
 		expected.add(createEvent("type1", "m1", EventKind.METHOD_DECLARATION));
 		expected.add(createEvent("type2", "m2", EventKind.INVOCATION));
 		
 		expected.add(createEvent("type1", "link2/type1.java", EventKind.ABSOLUTE_PATH));
+		stream.add(createEvent("type1", ".type1.java", EventKind.RELATIVE_PATH));
 		expected.add(createEvent("type2", "..ctor", EventKind.INITIALIZER));
 		expected.add(createEvent("type1", "m1", EventKind.CONSTRUCTOR));
 		
@@ -87,22 +94,27 @@ public class EventsFilterTest {
 	@Test
 	public void duplicates() {
 		stream.add(createEvent("type1", "link1/type1.java", EventKind.ABSOLUTE_PATH));
+		stream.add(createEvent("type1", ".type1.java", EventKind.RELATIVE_PATH));
 		stream.add(createEvent("type1", "m1", EventKind.METHOD_DECLARATION));
 		stream.add(createEvent("type2", "m2", EventKind.INVOCATION));
 		
 		stream.add(createEvent("type1", "link1/type1.java", EventKind.ABSOLUTE_PATH));
+		stream.add(createEvent("type1", ".type1.java", EventKind.RELATIVE_PATH));
 		stream.add(createEvent("type1", "m1", EventKind.METHOD_DECLARATION));
 		stream.add(createEvent("type2", "m2", EventKind.INVOCATION));
 		
 		stream.add(createEvent("type2", "link1/type2.java", EventKind.ABSOLUTE_PATH));
+		stream.add(createEvent("type2", ".type2.java", EventKind.RELATIVE_PATH));
 		stream.add(createEvent("type2", "..ctor", EventKind.INITIALIZER));
 		stream.add(createEvent("type1", "m1", EventKind.CONSTRUCTOR));
 		
 		expected.add(createEvent("type1", "link1/type1.java", EventKind.ABSOLUTE_PATH));
+		stream.add(createEvent("type1", ".type1.java", EventKind.RELATIVE_PATH));
 		expected.add(createEvent("type1", "m1", EventKind.METHOD_DECLARATION));
 		expected.add(createEvent("type2", "m2", EventKind.INVOCATION));
 		
 		expected.add(createEvent("type2", "link1/type2.java", EventKind.ABSOLUTE_PATH));
+		stream.add(createEvent("type2", ".type2.java", EventKind.RELATIVE_PATH));
 		expected.add(createEvent("type2", "..ctor", EventKind.INITIALIZER));
 		expected.add(createEvent("type1", "m1", EventKind.CONSTRUCTOR));
 		
@@ -114,6 +126,7 @@ public class EventsFilterTest {
 	@Test
 	public void frequent() {
 			stream.add(createEvent("type1", "link1/type1.java", EventKind.ABSOLUTE_PATH));
+			
 			stream.add(createEvent("type1", "m1", EventKind.METHOD_DECLARATION));
 			stream.add(createEvent("type2", ".ctor", EventKind.CONSTRUCTOR));
 			

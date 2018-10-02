@@ -90,9 +90,10 @@ public class runner {
 			// specific per project:
 			// args.getAdditionalOutputPath()
 
-//			ShellCommand command = new ShellCommand(new File(getEventsPath()),
-//					new File(getAlgorithmPath()));
-//			command.execute(FREQUENCY, ENTROPY, BREAKER);
+			// ShellCommand command = new ShellCommand(new
+			// File(getEventsPath()),
+			// new File(getAlgorithmPath()));
+			// command.execute(FREQUENCY, ENTROPY, BREAKER);
 
 			EpisodeParser episodeParser = new EpisodeParser(new File(
 					getEventsPath()), reader);
@@ -120,12 +121,13 @@ public class runner {
 			EventStreamIo esio = new EventStreamIo(new File(getEventsPath()));
 			List<Event> mapping = esio.readMapping(FREQUENCY);
 
-			 Map<Integer, Set<Episode>> patternFound = containsSubpattern(patterns, mapping);
+			Map<Integer, Set<Episode>> patternFound = containsSubpattern(
+					patterns, mapping);
 			// debugStream();
 
 			Set<APIUsagePattern> augPatterns = new EpisodesToPatternTransformer()
 					.transform(patternFound, mapping);
-			
+
 			System.out.println(augPatterns);
 
 			checkPatterns(episodes, mapping);
@@ -161,9 +163,9 @@ public class runner {
 											new PatternSupportWeightFunction(),
 											new ViolationSupportWeightFunction()))));
 			List<Violation> violations = detection.findViolations(targets);
-//			 List<Violation> violations = Lists.newLinkedList();
-			
-//			output.withRunInfo(key, value)
+			// List<Violation> violations = Lists.newLinkedList();
+
+			// output.withRunInfo(key, value)
 			return output.withFindings(violations, ViolationUtils::toFinding);
 		}
 
@@ -211,24 +213,22 @@ public class runner {
 
 		private Map<String, List<Tuple<Event, List<Event>>>> parser(
 				String[] srcPaths, String[] classpaths) throws IOException {
+			System.out
+					.println("Converting from source code to event stream ...");
 			List<Event> sequences = buildMethodTraces(srcPaths, classpaths);
-			System.out.println("Number of classes in event stream: "
-					+ numAbsClasses(sequences));
+			System.out.println("Number of classes: " + numbClasses(sequences));
+			System.out.println("Number of methods: " + numbMethods(sequences));
+			System.out.println("Number of events: " + numbEvents(sequences));
+			System.out.println();
 
 			EventsFilter ef = new EventsFilter();
 			// List<Event> localFilter = ef.locals(sequences);
-			// System.out
-			// .println("Number of events without project specific APIs: "
-			// + localFilter.size());
-			// System.out.println("Number of classes after filtering locals: "
-			// + numAbsClasses(localFilter));
-			//
 			List<Event> duplicateFilter = ef.duplicates(sequences);
 
 			System.out.println("Number of events without duplicates: "
 					+ duplicateFilter.size());
 			System.out.println("Number of classes after filtering duplicates: "
-					+ numAbsClasses(duplicateFilter));
+					+ numbClasses(duplicateFilter));
 
 			List<Event> frequentFilter = ef
 					.frequent(duplicateFilter, FREQUENCY);
@@ -236,7 +236,7 @@ public class runner {
 					+ frequentFilter.size());
 			System.out
 					.println("Number of classes after filtering infrequent events "
-							+ numAbsClasses(frequentFilter));
+							+ numbClasses(frequentFilter));
 
 			EventStreamGenerator esg = new EventStreamGenerator();
 			Map<String, List<Tuple<Event, List<Event>>>> absPath = esg
@@ -253,6 +253,30 @@ public class runner {
 			esg.generateFiles(new File(getEventsPath()), FREQUENCY, relPath);
 
 			return relPath;
+		}
+
+		private int numbEvents(List<Event> stream) {
+			int counter = 0;
+			for (Event event : stream) {
+				if ((event.getKind() == EventKind.FIRST_DECLARATION)
+						|| (event.getKind() == EventKind.SUPER_DECLARATION)
+						|| (event.getKind() == EventKind.CONSTRUCTOR)
+						|| (event.getKind() == EventKind.INVOCATION)) {
+					counter++;
+				}
+			}
+			return counter;
+		}
+
+		private int numbMethods(List<Event> stream) {
+			int counter = 0;
+			for (Event event : stream) {
+				if ((event.getKind() == EventKind.METHOD_DECLARATION)
+						|| (event.getKind() == EventKind.INITIALIZER)) {
+					counter++;
+				}
+			}
+			return counter;
 		}
 
 		private void containsPattern(
@@ -295,11 +319,11 @@ public class runner {
 			System.out.println("Max method size = " + maxLength);
 		}
 
-		private Map<Integer, Set<Episode>> containsSubpattern(Map<Integer, Set<Episode>> episodes,
-				List<Event> mapping) {
+		private Map<Integer, Set<Episode>> containsSubpattern(
+				Map<Integer, Set<Episode>> episodes, List<Event> mapping) {
 			String tn1 = "PreparedStatement";
 			String tn2 = "DBManager";
-			
+
 			Map<Integer, Set<Episode>> p = Maps.newLinkedHashMap();
 
 			String mn1 = "executeQuery";
@@ -369,7 +393,7 @@ public class runner {
 
 		}
 
-		private int numAbsClasses(List<Event> stream) {
+		private int numbClasses(List<Event> stream) {
 			int counter = 0;
 			for (Event event : stream) {
 				if (event.getKind() == EventKind.ABSOLUTE_PATH) {

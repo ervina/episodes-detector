@@ -26,13 +26,25 @@ public class EventGeneratorTest {
 	}
 
 	@Test
-	public void filePath() {
+	public void absolutePath() {
 		String file_path = "file.java";
 
 		event.setKind(EventKind.ABSOLUTE_PATH);
 		event.setMethod(Names.newMethod("[?] [file]." + file_path + "()"));
 
 		Event actuals = EventGenerator.absolutePath(file_path);
+
+		assertEquals(event, actuals);
+	}
+	
+	@Test
+	public void relativePath() {
+		String file_path = "file.java";
+
+		event.setKind(EventKind.RELATIVE_PATH);
+		event.setMethod(Names.newMethod("[?] [file]." + file_path + "()"));
+
+		Event actuals = EventGenerator.relativePath(file_path);
 
 		assertEquals(event, actuals);
 	}
