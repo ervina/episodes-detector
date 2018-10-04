@@ -129,9 +129,9 @@ public class runner {
 			Set<APIUsagePattern> augPatterns = new EpisodesToPatternTransformer()
 					.transform(patterns, mapping);
 
-//			System.out.println(augPatterns);
+			// System.out.println(augPatterns);
 
-//			checkPatterns(episodes, mapping);
+			// checkPatterns(episodes, mapping);
 
 			System.out.println("Number of patterns of APIUsage transformer: "
 					+ augPatterns.size());
@@ -154,17 +154,16 @@ public class runner {
 									extensionEdgeTypes = new HashSet<>(Arrays
 											.asList(OrderEdge.class));
 								}
-							}),
-					new MissingElementViolationPredicate(),
+							}), new MissingElementViolationPredicate(),
 					new AlternativeRankingAndFilterStrategy()
-//					new DefaultFilterAndRankingStrategy(
-//							new WeightRankingStrategy(
-//									new ProductWeightFunction(
-//											new OverlapWithoutEdgesToMissingNodesWeightFunction(
-//													new ConstantNodeWeightFunction()),
-//											new PatternSupportWeightFunction(),
-//											new ViolationSupportWeightFunction())))
-					);
+			// new DefaultFilterAndRankingStrategy(
+			// new WeightRankingStrategy(
+			// new ProductWeightFunction(
+			// new OverlapWithoutEdgesToMissingNodesWeightFunction(
+			// new ConstantNodeWeightFunction()),
+			// new PatternSupportWeightFunction(),
+			// new ViolationSupportWeightFunction())))
+			);
 			List<Violation> violations = detection.findViolations(targets);
 			// List<Violation> violations = Lists.newLinkedList();
 
@@ -217,32 +216,38 @@ public class runner {
 				String[] srcPaths, String[] classpaths) throws IOException {
 			System.out
 					.println("Converting from source code to event stream ...");
-			List<Event> sequences = buildMethodTraces(srcPaths, classpaths);
-			System.out.println("Number of classes: " + numbClasses(sequences));
-			System.out.println("Number of methods: " + numbMethods(sequences));
-			System.out.println("Number of events: " + numbEvents(sequences));
+			List<Event> eventStream = buildMethodTraces(srcPaths, classpaths);
+			System.out
+					.println("Number of classes: " + numbClasses(eventStream));
+			System.out
+					.println("Number of methods: " + numbMethods(eventStream));
+			System.out.println("Number of events: " + numbEvents(eventStream));
 			System.out.println();
 
 			EventsFilter ef = new EventsFilter();
 			// List<Event> localFilter = ef.locals(sequences);
-			List<Event> duplicateFilter = ef.duplicates(sequences);
+			System.out.println("Filtering duplicate code ...");
+			List<Event> noDuplicates = ef.duplicates(eventStream);
+			System.out.println("Number of classes: "
+					+ numbClasses(noDuplicates));
+			System.out.println("Number of methods: "
+					+ numbMethods(noDuplicates));
+			System.out.println("Number of events: " + numbEvents(noDuplicates));
+			System.out.println();
 
-			System.out.println("Number of events without duplicates: "
-					+ duplicateFilter.size());
-			System.out.println("Number of classes after filtering duplicates: "
-					+ numbClasses(duplicateFilter));
-
-			List<Event> frequentFilter = ef
-					.frequent(duplicateFilter, FREQUENCY);
-			System.out.println("Number of frequent events: "
-					+ frequentFilter.size());
-			System.out
-					.println("Number of classes after filtering infrequent events "
-							+ numbClasses(frequentFilter));
+			System.out.println("Filtering infrequent events ...");
+			List<Event> frequentEvents = ef.frequent(noDuplicates, FREQUENCY);
+			System.out.println("Number of classes: "
+					+ numbClasses(frequentEvents));
+			System.out.println("Number of methods: "
+					+ numbMethods(frequentEvents));
+			System.out.println("Number of events: "
+					+ numbEvents(frequentEvents));
+			System.out.println();
 
 			EventStreamGenerator esg = new EventStreamGenerator();
 			Map<String, List<Tuple<Event, List<Event>>>> absPath = esg
-					.absoluteFileMethodStructure(frequentFilter);
+					.absoluteFileMethodStructure(frequentEvents);
 			// checkEventExist(sequences);
 			// getMethodOccs(absPath);
 			containsPattern(absPath);
@@ -439,14 +444,16 @@ public class runner {
 		}
 
 		private String getEventsPath() {
-//			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-			 String pathName = "/home/ervina/eventsData/test/";
+			// String pathName =
+			// "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
+			String pathName = "/home/ervina/eventsData/test/";
 			return pathName;
 		}
 
 		private String getAlgorithmPath() {
-//			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
-			 String path = "/home/ervina/n-graph-miner/";
+			// String path =
+			// "/Users/ervinacergani/Documents/projects/n-graph-miner/";
+			String path = "/home/ervina/n-graph-miner/";
 			return path;
 		}
 	}
