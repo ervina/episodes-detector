@@ -36,6 +36,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import de.tu_darmstadt.stg.mubench.AlternativeRankingAndFilterStrategy;
 import de.tu_darmstadt.stg.mubench.DataEdgeTypePriorityOrder;
 import de.tu_darmstadt.stg.mubench.DefaultFilterAndRankingStrategy;
 import de.tu_darmstadt.stg.mubench.ViolationUtils;
@@ -126,11 +127,11 @@ public class runner {
 			// debugStream();
 
 			Set<APIUsagePattern> augPatterns = new EpisodesToPatternTransformer()
-					.transform(patternFound, mapping);
+					.transform(patterns, mapping);
 
-			System.out.println(augPatterns);
+//			System.out.println(augPatterns);
 
-			checkPatterns(episodes, mapping);
+//			checkPatterns(episodes, mapping);
 
 			System.out.println("Number of patterns of APIUsage transformer: "
 					+ augPatterns.size());
@@ -155,13 +156,15 @@ public class runner {
 								}
 							}),
 					new MissingElementViolationPredicate(),
-					new DefaultFilterAndRankingStrategy(
-							new WeightRankingStrategy(
-									new ProductWeightFunction(
-											new OverlapWithoutEdgesToMissingNodesWeightFunction(
-													new ConstantNodeWeightFunction()),
-											new PatternSupportWeightFunction(),
-											new ViolationSupportWeightFunction()))));
+					new AlternativeRankingAndFilterStrategy()
+//					new DefaultFilterAndRankingStrategy(
+//							new WeightRankingStrategy(
+//									new ProductWeightFunction(
+//											new OverlapWithoutEdgesToMissingNodesWeightFunction(
+//													new ConstantNodeWeightFunction()),
+//											new PatternSupportWeightFunction(),
+//											new ViolationSupportWeightFunction())))
+					);
 			List<Violation> violations = detection.findViolations(targets);
 			// List<Violation> violations = Lists.newLinkedList();
 
@@ -185,7 +188,6 @@ public class runner {
 				List<Event> mapping) {
 			System.out.println("Method: "
 					+ mapping.get(2).getMethod().getIdentifier());
-
 		}
 
 		private int counter(Map<Integer, Set<Episode>> patterns) {
@@ -437,14 +439,14 @@ public class runner {
 		}
 
 		private String getEventsPath() {
-			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-			// String pathName = "/home/ervina/eventsData/test/";
+//			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
+			 String pathName = "/home/ervina/eventsData/test/";
 			return pathName;
 		}
 
 		private String getAlgorithmPath() {
-			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
-			// String path = "/home/ervina/n-graph-miner/";
+//			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
+			 String path = "/home/ervina/n-graph-miner/";
 			return path;
 		}
 	}

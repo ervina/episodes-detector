@@ -19,12 +19,6 @@ public class EventsFilter {
 		List<Event> noLocals = Lists.newLinkedList();
 
 		Map<String, Tuple<Set<String>, List<Event>>> pte = projectTypeEvents(stream);
-		System.out
-				.println("Number of absolute classes in project-type-events: "
-						+ numAbsClasses(pte));
-		System.out
-				.println("Number of relative classes in project-type-events: "
-						+ numRelClasses(pte));
 
 		for (Map.Entry<String, Tuple<Set<String>, List<Event>>> entry : pte
 				.entrySet()) {
@@ -46,34 +40,6 @@ public class EventsFilter {
 			}
 		}
 		return removeEmptyMethods(noLocals);
-	}
-
-	private int numAbsClasses(Map<String, Tuple<Set<String>, List<Event>>> pte) {
-		int counter = 0;
-		for (Map.Entry<String, Tuple<Set<String>, List<Event>>> entry : pte
-				.entrySet()) {
-			Tuple<Set<String>, List<Event>> tuple = entry.getValue();
-			for (Event event : tuple.getSecond()) {
-				if (event.getKind() == EventKind.ABSOLUTE_PATH) {
-					counter++;
-				}
-			}
-		}
-		return counter;
-	}
-
-	private int numRelClasses(Map<String, Tuple<Set<String>, List<Event>>> pte) {
-		int counter = 0;
-		for (Map.Entry<String, Tuple<Set<String>, List<Event>>> entry : pte
-				.entrySet()) {
-			Tuple<Set<String>, List<Event>> tuple = entry.getValue();
-			for (Event event : tuple.getSecond()) {
-				if (event.getKind() == EventKind.RELATIVE_PATH) {
-					counter++;
-				}
-			}
-		}
-		return counter;
 	}
 
 	public List<Event> duplicates(List<Event> stream) {
@@ -145,10 +111,6 @@ public class EventsFilter {
 		EventStreamGenerator esg = new EventStreamGenerator();
 		Map<String, List<Tuple<Event, List<Event>>>> structure = esg
 				.absoluteFileMethodStructure(stream);
-		System.out.println("Absolute classes in file-method: "
-				+ structure.size());
-		System.out.println("Relative classes in file-method "
-				+ getNumRelClasses(structure));
 
 		for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : structure
 				.entrySet()) {
@@ -180,22 +142,6 @@ public class EventsFilter {
 			}
 		}
 		return results;
-	}
-
-	private int getNumRelClasses(
-			Map<String, List<Tuple<Event, List<Event>>>> structure) {
-		int counter = 0;
-		for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : structure
-				.entrySet()) {
-			for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
-				for (Event event : tuple.getSecond()) {
-					if (event.getKind() == EventKind.RELATIVE_PATH) {
-						counter++;
-					}
-				}
-			}
-		}
-		return counter;
 	}
 
 	private List<Event> removeEmptyMethods(List<Event> stream) {
