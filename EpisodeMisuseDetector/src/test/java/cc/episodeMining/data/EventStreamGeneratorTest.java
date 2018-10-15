@@ -56,12 +56,15 @@ public class EventStreamGeneratorTest {
 	@Test
 	public void structure() {
 		Event source = createEvent("type1", "link1", EventKind.ABSOLUTE_PATH);
+		Event relPath = createEvent("type1", "link1.java",
+				EventKind.RELATIVE_PATH);
 		Event md = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
 		Event event1 = createEvent("type2", "cctor", EventKind.INITIALIZER);
 		Event event2 = createEvent("type2", "m2", EventKind.INVOCATION);
 		Event event3 = createEvent("type1", "ctor", EventKind.CONSTRUCTOR);
 
 		stream.add(source);
+		stream.add(relPath);
 		stream.add(md);
 		stream.add(event2);
 		stream.add(event3);
@@ -74,6 +77,7 @@ public class EventStreamGeneratorTest {
 		Map<String, List<Tuple<Event, List<Event>>>> expected = Maps
 				.newLinkedHashMap();
 		expected.put(srcPath, Lists.newArrayList(
+				Tuple.newTuple(null, Lists.newArrayList(relPath)),
 				Tuple.newTuple(md, Lists.newArrayList(event2, event3)),
 				Tuple.newTuple(event1, Lists.newArrayList(event3, event2))));
 
@@ -86,6 +90,8 @@ public class EventStreamGeneratorTest {
 	@Test
 	public void threeMethods() {
 		Event src = createEvent("type1", "link1", EventKind.ABSOLUTE_PATH);
+		Event relPath = createEvent("type1", "link1.java",
+				EventKind.RELATIVE_PATH);
 		Event init = createEvent("type2", "cctor", EventKind.INITIALIZER);
 		Event md1 = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
 		Event md2 = createEvent("type2", "m2", EventKind.METHOD_DECLARATION);
@@ -93,6 +99,7 @@ public class EventStreamGeneratorTest {
 		Event constr = createEvent("type1", "ctor", EventKind.CONSTRUCTOR);
 
 		stream.add(src);
+		stream.add(relPath);
 		stream.add(init);
 		stream.add(constr);
 		stream.add(inv);
@@ -106,13 +113,16 @@ public class EventStreamGeneratorTest {
 		String srcPath = src.getMethod().getFullName();
 		Map<String, List<Tuple<Event, List<Event>>>> expected = Maps
 				.newLinkedHashMap();
+		Tuple<Event, List<Event>> tuple0 = Tuple.newTuple(null,
+				Lists.newArrayList(relPath));
 		Tuple<Event, List<Event>> tuple1 = Tuple.newTuple(init,
 				Lists.newArrayList(constr, inv));
 		Tuple<Event, List<Event>> tuple2 = Tuple.newTuple(md1,
 				Lists.newArrayList(inv));
 		Tuple<Event, List<Event>> tuple3 = Tuple.newTuple(md2,
 				Lists.newArrayList(constr));
-		expected.put(srcPath, Lists.newArrayList(tuple1, tuple2, tuple3));
+		expected.put(srcPath,
+				Lists.newArrayList(tuple0, tuple1, tuple2, tuple3));
 
 		Map<String, List<Tuple<Event, List<Event>>>> actuals = sut
 				.absoluteFileMethodStructure(stream);
@@ -125,6 +135,11 @@ public class EventStreamGeneratorTest {
 		Event src1 = createEvent("type1", "link1", EventKind.ABSOLUTE_PATH);
 		Event src2 = createEvent("type2", "link2", EventKind.ABSOLUTE_PATH);
 		Event src3 = createEvent("type3", "link3", EventKind.ABSOLUTE_PATH);
+
+		Event rp1 = createEvent("type1", "link1.java", EventKind.RELATIVE_PATH);
+		Event rp2 = createEvent("type2", "link2.java", EventKind.RELATIVE_PATH);
+		Event rp3 = createEvent("type3", "link3.java", EventKind.RELATIVE_PATH);
+
 		Event md1 = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
 		Event md2 = createEvent("type2", "m2", EventKind.METHOD_DECLARATION);
 		Event init = createEvent("type2", "cctor", EventKind.INITIALIZER);
@@ -133,16 +148,19 @@ public class EventStreamGeneratorTest {
 		Event event3 = createEvent("type3", "m3", EventKind.INVOCATION);
 
 		stream.add(src1);
+		stream.add(rp1);
 		stream.add(md1);
 		stream.add(event2);
 		stream.add(event1);
 
 		stream.add(src2);
+		stream.add(rp2);
 		stream.add(init);
 		stream.add(event2);
 		stream.add(event3);
 
 		stream.add(src3);
+		stream.add(rp3);
 		stream.add(md2);
 		stream.add(event2);
 		stream.add(event1);
@@ -153,15 +171,20 @@ public class EventStreamGeneratorTest {
 		String srcPath3 = src3.getMethod().getFullName();
 		Map<String, List<Tuple<Event, List<Event>>>> expected = Maps
 				.newLinkedHashMap();
-		Tuple<Event, List<Event>> tuple = Tuple.newTuple(md1,
+		Tuple<Event, List<Event>> tuple0 = Tuple.newTuple(null,
+				Lists.newArrayList(rp1));
+		Tuple<Event, List<Event>> tuple1 = Tuple.newTuple(md1,
 				Lists.newArrayList(event2, event1));
-		expected.put(srcPath1, Lists.newArrayList(tuple));
+		expected.put(srcPath1, Lists.newArrayList(tuple0, tuple1));
 
-		tuple = Tuple.newTuple(init, Lists.newArrayList(event2, event3));
-		expected.put(srcPath2, Lists.newArrayList(tuple));
+		tuple0 = Tuple.newTuple(null, Lists.newArrayList(rp2));
+		tuple1 = Tuple.newTuple(init, Lists.newArrayList(event2, event3));
+		expected.put(srcPath2, Lists.newArrayList(tuple0, tuple1));
 
-		tuple = Tuple.newTuple(md2, Lists.newArrayList(event2, event1, event3));
-		expected.put(srcPath3, Lists.newArrayList(tuple));
+		tuple0 = Tuple.newTuple(null, Lists.newArrayList(rp3));
+		tuple1 = Tuple
+				.newTuple(md2, Lists.newArrayList(event2, event1, event3));
+		expected.put(srcPath3, Lists.newArrayList(tuple0, tuple1));
 
 		Map<String, List<Tuple<Event, List<Event>>>> actuals = sut
 				.absoluteFileMethodStructure(stream);
@@ -172,18 +195,20 @@ public class EventStreamGeneratorTest {
 	@Test
 	public void eventstream() throws IOException {
 		Event source = createEvent("type1", "link1", EventKind.ABSOLUTE_PATH);
+		Event relPath = createEvent("type1", "link1.java",
+				EventKind.RELATIVE_PATH);
 		Event md = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
 		Event event1 = createEvent("type2", "cctor", EventKind.INITIALIZER);
 		Event event2 = createEvent("type2", "m2", EventKind.INVOCATION);
 		Event event3 = createEvent("type1", "ctor", EventKind.CONSTRUCTOR);
 
-		String srcPath = source.getMethod().getFullName();
+		String relSource = relPath.getMethod().getFullName();
 		Map<String, List<Tuple<Event, List<Event>>>> eventStream = Maps
 				.newLinkedHashMap();
-		eventStream.put(srcPath, Lists.newLinkedList());
-		eventStream.get(srcPath).add(
+		eventStream.put(relSource, Lists.newLinkedList());
+		eventStream.get(relSource).add(
 				Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
-		eventStream.get(srcPath).add(
+		eventStream.get(relSource).add(
 				Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
 
 		EventStream expected = new EventStream();

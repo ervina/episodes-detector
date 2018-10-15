@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import cc.episodeMining.algorithm.ShellCommand;
 import cc.episodeMining.data.EventStreamGenerator;
 import cc.episodeMining.data.EventsFilter;
 import cc.episodeMining.data.SequenceGenerator;
@@ -38,7 +39,6 @@ import com.google.common.collect.Sets;
 
 import de.tu_darmstadt.stg.mubench.AlternativeRankingAndFilterStrategy;
 import de.tu_darmstadt.stg.mubench.DataEdgeTypePriorityOrder;
-import de.tu_darmstadt.stg.mubench.DefaultFilterAndRankingStrategy;
 import de.tu_darmstadt.stg.mubench.ViolationUtils;
 import de.tu_darmstadt.stg.mubench.cli.DetectionStrategy;
 import de.tu_darmstadt.stg.mubench.cli.DetectorArgs;
@@ -56,23 +56,17 @@ import de.tu_darmstadt.stg.mudetect.matcher.EquallyLabelledEdgeMatcher;
 import de.tu_darmstadt.stg.mudetect.matcher.EquallyLabelledNodeMatcher;
 import de.tu_darmstadt.stg.mudetect.model.Violation;
 import de.tu_darmstadt.stg.mudetect.overlapsfinder.AlternativeMappingsOverlapsFinder;
-import de.tu_darmstadt.stg.mudetect.ranking.ConstantNodeWeightFunction;
-import de.tu_darmstadt.stg.mudetect.ranking.OverlapWithoutEdgesToMissingNodesWeightFunction;
-import de.tu_darmstadt.stg.mudetect.ranking.PatternSupportWeightFunction;
-import de.tu_darmstadt.stg.mudetect.ranking.ProductWeightFunction;
-import de.tu_darmstadt.stg.mudetect.ranking.ViolationSupportWeightFunction;
-import de.tu_darmstadt.stg.mudetect.ranking.WeightRankingStrategy;
 import edu.iastate.cs.mudetect.mining.MinPatternActionsModel;
 
 public class runner {
 
 	private static FileReader reader = new FileReader();
 
-	private static final int FREQUENCY = 10;
+	private static final int FREQUENCY = 11;
 	private static final double ENTROPY = 0.5;
 	private static final int BREAKER = 5000;
 
-	private static final int THRESHFREQ = 10;
+	private static final int THRESHFREQ = 11;
 	private static final double THRESHENT = 0.5;
 	private static final double THRESHSUBP = 1.0;
 
@@ -91,10 +85,9 @@ public class runner {
 			// specific per project:
 			// args.getAdditionalOutputPath()
 
-			// ShellCommand command = new ShellCommand(new
-			// File(getEventsPath()),
-			// new File(getAlgorithmPath()));
-			// command.execute(FREQUENCY, ENTROPY, BREAKER);
+			ShellCommand command = new ShellCommand(new File(getEventsPath()),
+					new File(getAlgorithmPath()));
+			command.execute(FREQUENCY, ENTROPY, BREAKER);
 
 			EpisodeParser episodeParser = new EpisodeParser(new File(
 					getEventsPath()), reader);
@@ -328,12 +321,12 @@ public class runner {
 
 		private Map<Integer, Set<Episode>> containsSubpattern(
 				Map<Integer, Set<Episode>> episodes, List<Event> mapping) {
-			String tn1 = "PreparedStatement";
+			String tn1 = "Connection";
 			String tn2 = "DBManager";
 
 			Map<Integer, Set<Episode>> p = Maps.newLinkedHashMap();
 
-			String mn1 = "executeQuery";
+			String mn1 = "prepareStatement";
 			String mn2 = "closePreparedStatement";
 
 			Event event1 = EventGenerator.invocation(tn1, mn1);
