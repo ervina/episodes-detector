@@ -202,13 +202,15 @@ public class EventStreamGeneratorTest {
 		Event event2 = createEvent("type2", "m2", EventKind.INVOCATION);
 		Event event3 = createEvent("type1", "ctor", EventKind.CONSTRUCTOR);
 
-		String relSource = relPath.getMethod().getFullName();
+		String srcPath = source.getMethod().getFullName();
 		Map<String, List<Tuple<Event, List<Event>>>> eventStream = Maps
 				.newLinkedHashMap();
-		eventStream.put(relSource, Lists.newLinkedList());
-		eventStream.get(relSource).add(
+		eventStream.put(srcPath, Lists.newLinkedList());
+		eventStream.get(srcPath).add(
+				Tuple.newTuple(null, Lists.newArrayList(relPath)));
+		eventStream.get(srcPath).add(
 				Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
-		eventStream.get(relSource).add(
+		eventStream.get(srcPath).add(
 				Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
 
 		EventStream expected = new EventStream();
@@ -219,8 +221,10 @@ public class EventStreamGeneratorTest {
 		expected.addEvent(event2);
 		expected.increaseTimeout();
 
+		Map<String, List<Tuple<Event, List<Event>>>> rps = sut
+				.relativeFileMethodStructure(eventStream);
 		EventStream actuals = sut.generateFiles(rootFolder.getRoot(),
-				FREQUENCY, eventStream);
+				FREQUENCY, rps);
 
 		assertEquals(expected.getMapping(), actuals.getMapping());
 		assertEquals(expected.getStreamText(), actuals.getStreamText());
@@ -229,6 +233,8 @@ public class EventStreamGeneratorTest {
 	@Test
 	public void filesCreated() throws IOException {
 		Event source = createEvent("type1", "link1", EventKind.ABSOLUTE_PATH);
+		Event relPath = createEvent("type1", "link1.java",
+				EventKind.RELATIVE_PATH);
 		Event md = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
 		Event event1 = createEvent("type2", "cctor", EventKind.INITIALIZER);
 		Event event2 = createEvent("type2", "m2", EventKind.INVOCATION);
@@ -239,11 +245,15 @@ public class EventStreamGeneratorTest {
 				.newLinkedHashMap();
 		eventStream.put(srcPath, Lists.newLinkedList());
 		eventStream.get(srcPath).add(
+				Tuple.newTuple(null, Lists.newArrayList(relPath)));
+		eventStream.get(srcPath).add(
 				Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
 		eventStream.get(srcPath).add(
 				Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
 
-		sut.generateFiles(rootFolder.getRoot(), FREQUENCY, eventStream);
+		Map<String, List<Tuple<Event, List<Event>>>> rs = sut
+				.relativeFileMethodStructure(eventStream);
+		sut.generateFiles(rootFolder.getRoot(), FREQUENCY, rs);
 
 		assertTrue(getStreamObjectPath().exists());
 		assertTrue(getStreamPath().exists());
@@ -253,6 +263,8 @@ public class EventStreamGeneratorTest {
 	@Test
 	public void filesContent() throws IOException {
 		Event source = createEvent("type1", "link1", EventKind.ABSOLUTE_PATH);
+		Event relPath = createEvent("type1", "link1.java",
+				EventKind.RELATIVE_PATH);
 		Event md = createEvent("type1", "m1", EventKind.METHOD_DECLARATION);
 		Event event1 = createEvent("type2", "cctor", EventKind.INITIALIZER);
 		Event event2 = createEvent("type2", "m2", EventKind.INVOCATION);
@@ -263,11 +275,15 @@ public class EventStreamGeneratorTest {
 				.newLinkedHashMap();
 		eventStream.put(srcPath, Lists.newLinkedList());
 		eventStream.get(srcPath).add(
+				Tuple.newTuple(null, Lists.newArrayList(relPath)));
+		eventStream.get(srcPath).add(
 				Tuple.newTuple(md, Lists.newArrayList(event2, event3)));
 		eventStream.get(srcPath).add(
 				Tuple.newTuple(event1, Lists.newArrayList(event3, event2)));
 
-		sut.generateFiles(rootFolder.getRoot(), FREQUENCY, eventStream);
+		Map<String, List<Tuple<Event, List<Event>>>> rs = sut
+				.relativeFileMethodStructure(eventStream);
+		sut.generateFiles(rootFolder.getRoot(), FREQUENCY, rs);
 
 		@SuppressWarnings("serial")
 		Type type1 = new TypeToken<Map<String, List<Tuple<Event, List<Event>>>>>() {
@@ -287,7 +303,7 @@ public class EventStreamGeneratorTest {
 		}.getType();
 		List<Event> actualMap = JsonUtils.fromJson(getMapPath(), type2);
 
-		assertEquals(eventStream, actualObject);
+		assertEquals(rs, actualObject);
 		assertEquals(expectedStream, actualStream);
 		assertEquals(expectedMap, actualMap);
 	}
