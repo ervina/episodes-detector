@@ -111,10 +111,10 @@ public class TraceToAUGTransformerTest {
 		File sourceFile = tmpFolder.newFile("test.java");
 		FileUtils.writeStringToFile(sourceFile, code);
 
-		APIUsageExample aug = generateAUG(sourceFile);
+		APIUsageExample aug = generateAUG(tmpFolder.getRoot().getAbsoluteFile());
 
 		assertThat(aug.getLocation().getFilePath(),
-				is(sourceFile.getAbsolutePath()));
+				is("./test.java"));
 	}
 
 	private APIUsageExample generateAUG(String code) throws IOException {
@@ -128,8 +128,10 @@ public class TraceToAUGTransformerTest {
 		List<Event> trace = new SequenceGenerator().generateMethodTraces(
 				sourceFile, classpath);
 		EventStreamGenerator eventStreamGenerator = new EventStreamGenerator();
-		Map<String, List<Tuple<Event, List<Event>>>> srcMapping = eventStreamGenerator
+		Map<String, List<Tuple<Event, List<Event>>>> absMapping = eventStreamGenerator
 				.absoluteFileMethodStructure(trace);
+		Map<String, List<Tuple<Event, List<Event>>>> srcMapping = eventStreamGenerator
+				.relativeFileMethodStructure(absMapping);
 
 		assertTrue(srcMapping.size() == 1);
 

@@ -2,6 +2,7 @@ package cc.episodeMining.data;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import cc.recommenders.datastructures.Tuple;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.reflect.TypeToken;
 
 public class EventStreamGenerator {
 
@@ -95,6 +97,15 @@ public class EventStreamGenerator {
 		JsonUtils.toJson(es.getMapping(), getMapPath(path, frequency));
 
 		return es;
+	}
+	
+	public Map<String, List<Tuple<Event, List<Event>>>> readStreamObject(File path, int frequency) {
+		File filePath = getStreamObjectPath(path, frequency);
+		
+		@SuppressWarnings("serial")
+		Type type = new TypeToken<Map<String, List<Tuple<Event, List<Event>>>>>() {
+		}.getType();
+		return JsonUtils.fromJson(filePath, type);
 	}
 
 	private String getPath(File folder, int frequency) {

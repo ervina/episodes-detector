@@ -71,7 +71,6 @@ public class EpisodesToPatternTransformer {
 			}
 			patterns.add(patternPermutation);
 		}
-
 		return patterns;
 	}
 

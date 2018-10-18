@@ -67,7 +67,7 @@ public class runner {
 	private static final int BREAKER = 5000;
 
 	private static final int THRESHFREQ = 11;
-	private static final double THRESHENT = 0.5;
+	private static final double THRESHENT = 0.9;
 	private static final double THRESHSUBP = 1.0;
 
 	public static void main(String[] args) throws Exception {
@@ -80,14 +80,15 @@ public class runner {
 
 		public DetectorOutput detectViolations(DetectorArgs args,
 				DetectorOutput.Builder output) throws Exception {
-			Map<String, List<Tuple<Event, List<Event>>>> stream = parser(
-					args.getTargetSrcPaths(), args.getDependencyClassPath());
+			// Map<String, List<Tuple<Event, List<Event>>>> stream = parser(
+			// args.getTargetSrcPaths(), args.getDependencyClassPath());
 			// specific per project:
 			// args.getAdditionalOutputPath()
 
-			ShellCommand command = new ShellCommand(new File(getEventsPath()),
-					new File(getAlgorithmPath()));
-			command.execute(FREQUENCY, ENTROPY, BREAKER);
+			// ShellCommand command = new ShellCommand(new
+			// File(getEventsPath()),
+			// new File(getAlgorithmPath()));
+			// command.execute(FREQUENCY, ENTROPY, BREAKER);
 
 			EpisodeParser episodeParser = new EpisodeParser(new File(
 					getEventsPath()), reader);
@@ -96,6 +97,9 @@ public class runner {
 			System.out.println("Maximal episode size " + episodes.size());
 			System.out.println("Number of episodes: " + counter(episodes));
 
+			episodes.remove(7);
+			episodes.remove(6);
+			
 			PatternFilter patternFilter = new PatternFilter(
 					new PartialPatterns(), new SequentialPatterns(),
 					new ParallelPatterns());
@@ -115,14 +119,17 @@ public class runner {
 			EventStreamIo esio = new EventStreamIo(new File(getEventsPath()));
 			List<Event> mapping = esio.readMapping(FREQUENCY);
 
-			Map<Integer, Set<Episode>> patternFound = containsSubpattern(
-					patterns, mapping);
+			EventStreamGenerator esg = new EventStreamGenerator();
+			Map<String, List<Tuple<Event, List<Event>>>> stream = esg
+					.readStreamObject(new File(getEventsPath()), FREQUENCY);
+
+			// Map<Integer, Set<Episode>> patternFound =
+			// containsSubpattern(repr,
+			// mapping);
 			// debugStream();
 
 			Set<APIUsagePattern> augPatterns = new EpisodesToPatternTransformer()
 					.transform(patterns, mapping);
-
-			// System.out.println(augPatterns);
 
 			// checkPatterns(episodes, mapping);
 
@@ -243,12 +250,12 @@ public class runner {
 					.absoluteFileMethodStructure(frequentEvents);
 			// checkEventExist(sequences);
 			// getMethodOccs(absPath);
-			containsPattern(absPath);
+			// containsPattern(absPath);
 			System.out.println("After all filters, number of classes "
 					+ absPath.size());
 			Map<String, List<Tuple<Event, List<Event>>>> relPath = esg
 					.relativeFileMethodStructure(absPath);
-			containsPattern(relPath);
+			// containsPattern(relPath);
 			getNoFiles(relPath);
 			esg.generateFiles(new File(getEventsPath()), FREQUENCY, relPath);
 
@@ -437,16 +444,14 @@ public class runner {
 		}
 
 		private String getEventsPath() {
-			// String pathName =
-			// "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-			String pathName = "/home/ervina/eventsData/test/";
+//			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
+			 String pathName = "/home/ervina/eventsData/test/";
 			return pathName;
 		}
 
 		private String getAlgorithmPath() {
-			// String path =
-			// "/Users/ervinacergani/Documents/projects/n-graph-miner/";
-			String path = "/home/ervina/n-graph-miner/";
+//			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
+			 String path = "/home/ervina/n-graph-miner/";
 			return path;
 		}
 	}

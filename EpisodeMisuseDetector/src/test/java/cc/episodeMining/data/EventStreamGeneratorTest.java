@@ -285,11 +285,8 @@ public class EventStreamGeneratorTest {
 				.relativeFileMethodStructure(eventStream);
 		sut.generateFiles(rootFolder.getRoot(), FREQUENCY, rs);
 
-		@SuppressWarnings("serial")
-		Type type1 = new TypeToken<Map<String, List<Tuple<Event, List<Event>>>>>() {
-		}.getType();
-		Map<String, List<Tuple<Event, List<Event>>>> actualObject = JsonUtils
-				.fromJson(getStreamObjectPath(), type1);
+		Map<String, List<Tuple<Event, List<Event>>>> actualObject = sut
+				.readStreamObject(rootFolder.getRoot(), FREQUENCY);
 
 		String expectedStream = "1,0.000\n2,0.001\n2,5.002\n1,5.003\n";
 		String actualStream = FileUtils.readFileToString(getStreamPath());
