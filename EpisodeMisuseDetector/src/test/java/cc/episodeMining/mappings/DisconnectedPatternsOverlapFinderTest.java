@@ -77,27 +77,27 @@ public class DisconnectedPatternsOverlapFinderTest {
 		target.addVertex(node1);
 		target.addVertex(node2);
 		target.addVertex(node3);
+		target.addVertex(node4);
 		target.addVertex(node5);
 		target.addVertex(node6);
-		target.addVertex(node4);
 
 		target.addEdge(node1, node2, new OrderEdge(node1, node2));
 		target.addEdge(node1, node3, new OrderEdge(node1, node3));
+		target.addEdge(node1, node4, new OrderEdge(node1, node4));
 		target.addEdge(node1, node5, new OrderEdge(node1, node5));
 		target.addEdge(node1, node6, new OrderEdge(node1, node6));
-		target.addEdge(node1, node4, new OrderEdge(node1, node4));
 
 		target.addEdge(node2, node3, new OrderEdge(node2, node3));
+		target.addEdge(node2, node4, new OrderEdge(node2, node4));
 		target.addEdge(node2, node5, new OrderEdge(node2, node5));
 		target.addEdge(node2, node6, new OrderEdge(node2, node6));
-		target.addEdge(node2, node4, new OrderEdge(node2, node4));
 
+		target.addEdge(node3, node4, new OrderEdge(node3, node4));
 		target.addEdge(node3, node5, new OrderEdge(node3, node5));
 		target.addEdge(node3, node6, new OrderEdge(node3, node6));
-		target.addEdge(node3, node4, new OrderEdge(node3, node4));
 
-		target.addEdge(node5, node6, new OrderEdge(node5, node6));
 		target.addEdge(node5, node4, new OrderEdge(node5, node4));
+		target.addEdge(node5, node6, new OrderEdge(node5, node6));
 
 		target.addEdge(node6, node4, new OrderEdge(node6, node4));
 
@@ -139,7 +139,7 @@ public class DisconnectedPatternsOverlapFinderTest {
 		
 		assertPattern(overlap2);
 		assertTarget(overlap2);
-
+		
 		if (overlap1.getNodeSize() == 3) {
 			assertThat(overlap1.getNodeSize(), is(3));
 			assertThat(overlap2.getNodeSize(), is(2));
@@ -191,6 +191,9 @@ public class DisconnectedPatternsOverlapFinderTest {
 		
 		assertTarget(overlap1);
 		assertTarget(overlap2);
+		
+		assertPattern(overlap1);
+		assertPattern(overlap2);
 		
 		if (overlap1.getNodeSize() == 4) {
 			assertThat(overlap1.getPattern(), hasNodes(mc1, mc2, mc3, mc4));

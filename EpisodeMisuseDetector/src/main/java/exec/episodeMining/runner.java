@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import cc.episodeMining.algorithm.ShellCommand;
 import cc.episodeMining.data.EventStreamGenerator;
 import cc.episodeMining.data.EventsFilter;
 import cc.episodeMining.data.SequenceGenerator;
@@ -37,8 +36,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import de.tu_darmstadt.stg.mubench.AlternativeRankingAndFilterStrategy;
 import de.tu_darmstadt.stg.mubench.DataEdgeTypePriorityOrder;
+import de.tu_darmstadt.stg.mubench.DefaultFilterAndRankingStrategy;
 import de.tu_darmstadt.stg.mubench.ViolationUtils;
 import de.tu_darmstadt.stg.mubench.cli.DetectionStrategy;
 import de.tu_darmstadt.stg.mubench.cli.DetectorArgs;
@@ -56,17 +55,23 @@ import de.tu_darmstadt.stg.mudetect.matcher.EquallyLabelledEdgeMatcher;
 import de.tu_darmstadt.stg.mudetect.matcher.EquallyLabelledNodeMatcher;
 import de.tu_darmstadt.stg.mudetect.model.Violation;
 import de.tu_darmstadt.stg.mudetect.overlapsfinder.AlternativeMappingsOverlapsFinder;
+import de.tu_darmstadt.stg.mudetect.ranking.ConstantNodeWeightFunction;
+import de.tu_darmstadt.stg.mudetect.ranking.OverlapWithoutEdgesToMissingNodesWeightFunction;
+import de.tu_darmstadt.stg.mudetect.ranking.PatternSupportWeightFunction;
+import de.tu_darmstadt.stg.mudetect.ranking.ProductWeightFunction;
+import de.tu_darmstadt.stg.mudetect.ranking.ViolationSupportWeightFunction;
+import de.tu_darmstadt.stg.mudetect.ranking.WeightRankingStrategy;
 import edu.iastate.cs.mudetect.mining.MinPatternActionsModel;
 
 public class runner {
 
 	private static FileReader reader = new FileReader();
 
-	private static final int FREQUENCY = 11;
-	private static final double ENTROPY = 0.5;
+	private static final int FREQUENCY = 10;
+	private static final double ENTROPY = 0.6;
 	private static final int BREAKER = 5000;
 
-	private static final int THRESHFREQ = 11;
+	private static final int THRESHFREQ = 10;
 	private static final double THRESHENT = 0.9;
 	private static final double THRESHSUBP = 1.0;
 
@@ -97,9 +102,10 @@ public class runner {
 			System.out.println("Maximal episode size " + episodes.size());
 			System.out.println("Number of episodes: " + counter(episodes));
 
-			episodes.remove(7);
+			// episodes.remove(7);
 			episodes.remove(6);
-			
+			// episodes.remove(5);
+
 			PatternFilter patternFilter = new PatternFilter(
 					new PartialPatterns(), new SequentialPatterns(),
 					new ParallelPatterns());
@@ -154,16 +160,16 @@ public class runner {
 									extensionEdgeTypes = new HashSet<>(Arrays
 											.asList(OrderEdge.class));
 								}
-							}), new MissingElementViolationPredicate(),
-					new AlternativeRankingAndFilterStrategy()
-			// new DefaultFilterAndRankingStrategy(
-			// new WeightRankingStrategy(
-			// new ProductWeightFunction(
-			// new OverlapWithoutEdgesToMissingNodesWeightFunction(
-			// new ConstantNodeWeightFunction()),
-			// new PatternSupportWeightFunction(),
-			// new ViolationSupportWeightFunction())))
-			);
+							}),
+					new MissingElementViolationPredicate(),
+					// new AlternativeRankingAndFilterStrategy()
+					new DefaultFilterAndRankingStrategy(
+							new WeightRankingStrategy(
+									new ProductWeightFunction(
+											new OverlapWithoutEdgesToMissingNodesWeightFunction(
+													new ConstantNodeWeightFunction()),
+											new PatternSupportWeightFunction(),
+											new ViolationSupportWeightFunction()))));
 			List<Violation> violations = detection.findViolations(targets);
 			// List<Violation> violations = Lists.newLinkedList();
 
@@ -444,14 +450,16 @@ public class runner {
 		}
 
 		private String getEventsPath() {
-//			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-			 String pathName = "/home/ervina/eventsData/test/";
+			// String pathName =
+			// "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
+			String pathName = "/home/ervina/eventsData/test/";
 			return pathName;
 		}
 
 		private String getAlgorithmPath() {
-//			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
-			 String path = "/home/ervina/n-graph-miner/";
+			// String path =
+			// "/Users/ervinacergani/Documens/projects/n-graph-miner/";
+			String path = "/home/ervina/n-graph-miner/";
 			return path;
 		}
 	}
