@@ -20,12 +20,8 @@ import cc.kave.commons.model.naming.codeelements.IMethodName;
 import cc.kave.episodes.io.EpisodeParser;
 import cc.kave.episodes.io.EventStreamIo;
 import cc.kave.episodes.io.FileReader;
-import cc.kave.episodes.mining.patterns.ParallelPatterns;
-import cc.kave.episodes.mining.patterns.PartialPatterns;
 import cc.kave.episodes.mining.patterns.PatternFilter;
-import cc.kave.episodes.mining.patterns.SequentialPatterns;
 import cc.kave.episodes.model.Episode;
-import cc.kave.episodes.model.EpisodeType;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
 import cc.kave.episodes.model.events.Fact;
@@ -36,8 +32,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import de.tu_darmstadt.stg.mubench.AlternativeRankingAndFilterStrategy;
 import de.tu_darmstadt.stg.mubench.DataEdgeTypePriorityOrder;
-import de.tu_darmstadt.stg.mubench.DefaultFilterAndRankingStrategy;
 import de.tu_darmstadt.stg.mubench.ViolationUtils;
 import de.tu_darmstadt.stg.mubench.cli.DetectionStrategy;
 import de.tu_darmstadt.stg.mubench.cli.DetectorArgs;
@@ -55,12 +51,6 @@ import de.tu_darmstadt.stg.mudetect.matcher.EquallyLabelledEdgeMatcher;
 import de.tu_darmstadt.stg.mudetect.matcher.EquallyLabelledNodeMatcher;
 import de.tu_darmstadt.stg.mudetect.model.Violation;
 import de.tu_darmstadt.stg.mudetect.overlapsfinder.AlternativeMappingsOverlapsFinder;
-import de.tu_darmstadt.stg.mudetect.ranking.ConstantNodeWeightFunction;
-import de.tu_darmstadt.stg.mudetect.ranking.OverlapWithoutEdgesToMissingNodesWeightFunction;
-import de.tu_darmstadt.stg.mudetect.ranking.PatternSupportWeightFunction;
-import de.tu_darmstadt.stg.mudetect.ranking.ProductWeightFunction;
-import de.tu_darmstadt.stg.mudetect.ranking.ViolationSupportWeightFunction;
-import de.tu_darmstadt.stg.mudetect.ranking.WeightRankingStrategy;
 import edu.iastate.cs.mudetect.mining.MinPatternActionsModel;
 
 public class runner {
@@ -72,7 +62,7 @@ public class runner {
 	private static final int BREAKER = 5000;
 
 	private static final int THRESHFREQ = 10;
-	private static final double THRESHENT = 0.9;
+	private static final double THRESHENT = 0.97;
 	private static final double THRESHSUBP = 1.0;
 
 	public static void main(String[] args) throws Exception {
@@ -103,20 +93,22 @@ public class runner {
 			System.out.println("Number of episodes: " + counter(episodes));
 
 			// episodes.remove(7);
-			episodes.remove(6);
+			// episodes.remove(6);
 			// episodes.remove(5);
 
-			PatternFilter patternFilter = new PatternFilter(
-					new PartialPatterns(), new SequentialPatterns(),
-					new ParallelPatterns());
-			Map<Integer, Set<Episode>> superepisodes = patternFilter
-					.subEpisodes(episodes, THRESHSUBP);
+			PatternFilter patternFilter = new PatternFilter();
+			Map<Integer, Set<Episode>> filtered = patternFilter.filter(
+					episodes, THRESHFREQ, THRESHENT);
+			System.out.println("Number of patterns after filter: "
+					+ counter(filtered));
+			Map<Integer, Set<Episode>> superPatterns = patternFilter
+					.subEpisodes(filtered, THRESHSUBP);
 			System.out
 					.println("Number of episodes after filtering subepisodes: "
-							+ counter(superepisodes));
-			Map<Integer, Set<Episode>> patterns = patternFilter.filter(
-					EpisodeType.GENERAL, superepisodes, THRESHFREQ, THRESHENT);
-			System.out.println("Number of patterns: " + counter(patterns));
+							+ counter(superPatterns));
+			Map<Integer, Set<Episode>> patterns = patternFilter
+					.representatives(superPatterns);
+			System.out.println("Number of final patterns: " + counter(patterns));
 
 			// PatternStatistics statistics = new PatternStatistics();
 			// statistics.compute(patterns);
@@ -160,16 +152,16 @@ public class runner {
 									extensionEdgeTypes = new HashSet<>(Arrays
 											.asList(OrderEdge.class));
 								}
-							}),
-					new MissingElementViolationPredicate(),
-					// new AlternativeRankingAndFilterStrategy()
-					new DefaultFilterAndRankingStrategy(
-							new WeightRankingStrategy(
-									new ProductWeightFunction(
-											new OverlapWithoutEdgesToMissingNodesWeightFunction(
-													new ConstantNodeWeightFunction()),
-											new PatternSupportWeightFunction(),
-											new ViolationSupportWeightFunction()))));
+							}), new MissingElementViolationPredicate(),
+					new AlternativeRankingAndFilterStrategy()
+			// new DefaultFilterAndRankingStrategy(
+			// new WeightRankingStrategy(
+			// new ProductWeightFunction(
+			// new OverlapWithoutEdgesToMissingNodesWeightFunction(
+			// new ConstantNodeWeightFunction()),
+			// new PatternSupportWeightFunction(),
+			// new ViolationSupportWeightFunction())))
+			);
 			List<Violation> violations = detection.findViolations(targets);
 			// List<Violation> violations = Lists.newLinkedList();
 
