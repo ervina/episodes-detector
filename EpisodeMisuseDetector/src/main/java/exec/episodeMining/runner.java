@@ -62,7 +62,7 @@ public class runner {
 	private static final int BREAKER = 5000;
 
 	private static final int THRESHFREQ = 10;
-	private static final double THRESHENT = 0.97;
+	private static final double THRESHENT = 0.7;
 	private static final double THRESHSUBP = 1.0;
 
 	public static void main(String[] args) throws Exception {
@@ -80,13 +80,15 @@ public class runner {
 			// specific per project:
 			// args.getAdditionalOutputPath()
 
+			String projectName = args.getTargetSrcPaths()[0];
+
 			// ShellCommand command = new ShellCommand(new
 			// File(getEventsPath()),
 			// new File(getAlgorithmPath()));
 			// command.execute(FREQUENCY, ENTROPY, BREAKER);
 
 			EpisodeParser episodeParser = new EpisodeParser(new File(
-					getEventsPath()), reader);
+					getEventsPath(projectName)), reader);
 			Map<Integer, Set<Episode>> episodes = episodeParser
 					.parser(FREQUENCY);
 			System.out.println("Maximal episode size " + episodes.size());
@@ -108,18 +110,21 @@ public class runner {
 							+ counter(superPatterns));
 			Map<Integer, Set<Episode>> patterns = patternFilter
 					.representatives(superPatterns);
-			System.out.println("Number of final patterns: " + counter(patterns));
+			System.out
+					.println("Number of final patterns: " + counter(patterns));
 
 			// PatternStatistics statistics = new PatternStatistics();
 			// statistics.compute(patterns);
 			// statistics.DiscNodes(patterns);
 
-			EventStreamIo esio = new EventStreamIo(new File(getEventsPath()));
+			EventStreamIo esio = new EventStreamIo(new File(
+					getEventsPath(projectName)));
 			List<Event> mapping = esio.readMapping(FREQUENCY);
 
 			EventStreamGenerator esg = new EventStreamGenerator();
 			Map<String, List<Tuple<Event, List<Event>>>> stream = esg
-					.readStreamObject(new File(getEventsPath()), FREQUENCY);
+					.readStreamObject(new File(getEventsPath(projectName)),
+							FREQUENCY);
 
 			// Map<Integer, Set<Episode>> patternFound =
 			// containsSubpattern(repr,
@@ -169,17 +174,17 @@ public class runner {
 			return output.withFindings(violations, ViolationUtils::toFinding);
 		}
 
-		private void debugStream() {
-			FileReader reader = new FileReader();
-			List<String> stream = reader.readFile(new File(getEventsPath()
-					+ "/freq" + FREQUENCY + "/stream.txt"));
-			for (String line : stream) {
-				String[] idx = line.split(",");
-				if (idx[0].equals("15") || idx[0].equals("21")) {
-					System.out.println(line);
-				}
-			}
-		}
+//		private void debugStream() {
+//			FileReader reader = new FileReader();
+//			List<String> stream = reader.readFile(new File(getEventsPath()
+//					+ "/freq" + FREQUENCY + "/stream.txt"));
+//			for (String line : stream) {
+//				String[] idx = line.split(",");
+//				if (idx[0].equals("15") || idx[0].equals("21")) {
+//					System.out.println(line);
+//				}
+//			}
+//		}
 
 		private void checkPatterns(Map<Integer, Set<Episode>> patterns,
 				List<Event> mapping) {
@@ -255,7 +260,8 @@ public class runner {
 					.relativeFileMethodStructure(absPath);
 			// containsPattern(relPath);
 			getNoFiles(relPath);
-			esg.generateFiles(new File(getEventsPath()), FREQUENCY, relPath);
+			esg.generateFiles(new File(getEventsPath(srcPaths[0])), FREQUENCY,
+					relPath);
 
 			return relPath;
 		}
@@ -441,10 +447,11 @@ public class runner {
 			return sequences;
 		}
 
-		private String getEventsPath() {
+		private String getEventsPath(String projectName) {
 			// String pathName =
 			// "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-			String pathName = "/home/ervina/eventsData/test/";
+			String pathName = "/home/ervina/eventsData/test/" + projectName
+					+ "/";
 			return pathName;
 		}
 
