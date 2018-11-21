@@ -69,23 +69,18 @@ public class SequenceGenerator {
 						firstCtx = null;
 						superCtx = null;
 
-						String typeName = binding.getDeclaringClass().getName();
-						String methodName = binding.getName();
-						
-//						String packageName = binding.getDeclaringClass().getPackage().getName();
-//						String returnType = binding.getReturnType().getQualifiedName();
-//						String erasure = binding.getDeclaringClass().getErasure().getQualifiedName();
-//						String binaryName = binding.getDeclaringClass().getBinaryName();
-
-						elementCtx = EventGenerator.elementContext(typeName,
-								methodName,
-								getParamTypes(binding.getParameterTypes()));
-
 						ITypeBinding typeBinding = binding.getDeclaringClass()
 								.getTypeDeclaration();
+						String methodName = binding.getName();
 
-						// namespace???
-						// typeBinding.getPackage();
+						// String returnType =
+						// binding.getReturnType().getQualifiedName();
+						// String erasure =
+						// binding.getDeclaringClass().getErasure().getQualifiedName();
+
+						elementCtx = EventGenerator.elementContext(
+								typeBinding.getQualifiedName(), methodName,
+								getParamTypes(binding.getParameterTypes()));
 
 						getSuper(typeBinding, binding.getMethodDeclaration(),
 								JavaASTUtil.buildSignature(binding));
@@ -112,7 +107,7 @@ public class SequenceGenerator {
 
 						ITypeBinding binding = node.resolveBinding();
 						ITypeBinding tb = binding.getTypeDeclaration();
-						type = tb.getName();
+						type = tb.getQualifiedName();
 
 						return super.visit(node);
 					}
@@ -140,7 +135,7 @@ public class SequenceGenerator {
 							String sig = JavaASTUtil.buildSignature(md);
 							ITypeBinding tb = getBase(md.getDeclaringClass()
 									.getTypeDeclaration(), md, sig);
-							String type = tb.getName();
+							String type = tb.getQualifiedName();
 
 							addEnclosingContextIfAvailable();
 							stream.add(EventGenerator.constructor(type,
@@ -168,7 +163,7 @@ public class SequenceGenerator {
 							String sig = JavaASTUtil.buildSignature(md);
 							ITypeBinding tb = getBase(md.getDeclaringClass()
 									.getTypeDeclaration(), md, sig);
-							String type = tb.getName();
+							String type = tb.getQualifiedName();
 
 							addEnclosingContextIfAvailable();
 							stream.add(EventGenerator.invocation(type,
@@ -220,8 +215,8 @@ public class SequenceGenerator {
 					ITypeBinding stb = getSuper(tb.getSuperclass()
 							.getTypeDeclaration(), mb, sig);
 					if (stb != null) {
-						superCtx = EventGenerator.superContext(stb.getName(),
-								mb.getName(),
+						superCtx = EventGenerator.superContext(
+								stb.getQualifiedName(), mb.getName(),
 								getParamTypes(mb.getParameterTypes()));
 						return stb;
 					}
@@ -242,8 +237,8 @@ public class SequenceGenerator {
 					ITypeBinding stb = getFirst(itb.getTypeDeclaration(), mb,
 							sig);
 					if (stb != null) {
-						firstCtx = EventGenerator.firstContext(stb.getName(),
-								mb.getName(),
+						firstCtx = EventGenerator.firstContext(
+								stb.getQualifiedName(), mb.getName(),
 								getParamTypes(mb.getParameterTypes()));
 						return stb;
 					}
