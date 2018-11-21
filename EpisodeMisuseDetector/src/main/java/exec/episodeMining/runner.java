@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import cc.episodeMining.algorithm.ShellCommand;
 import cc.episodeMining.data.EventStreamGenerator;
 import cc.episodeMining.data.EventsFilter;
 import cc.episodeMining.data.SequenceGenerator;
-import cc.episodeMining.mubench.model.EventGenerator;
 import cc.episodeMining.mudetect.EpisodesToPatternTransformer;
 import cc.episodeMining.mudetect.TraceToAUGTransformer;
 import cc.kave.commons.model.naming.codeelements.IMethodName;
@@ -24,7 +24,6 @@ import cc.kave.episodes.mining.patterns.PatternFilter;
 import cc.kave.episodes.model.Episode;
 import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
-import cc.kave.episodes.model.events.Fact;
 import cc.recommenders.datastructures.Tuple;
 import cc.recommenders.io.Logger;
 
@@ -58,11 +57,11 @@ public class runner {
 	private static FileReader reader = new FileReader();
 
 	private static final int FREQUENCY = 10;
-	private static final double ENTROPY = 0.6;
+	private static final double ENTROPY = 0.5;
 	private static final int BREAKER = 5000;
 
 	private static final int THRESHFREQ = 10;
-	private static final double THRESHENT = 0.7;
+	private static final double THRESHENT = 0.8;
 	private static final double THRESHSUBP = 1.0;
 
 	public static void main(String[] args) throws Exception {
@@ -75,17 +74,16 @@ public class runner {
 
 		public DetectorOutput detectViolations(DetectorArgs args,
 				DetectorOutput.Builder output) throws Exception {
-			// Map<String, List<Tuple<Event, List<Event>>>> stream = parser(
-			// args.getTargetSrcPaths(), args.getDependencyClassPath());
+			Map<String, List<Tuple<Event, List<Event>>>> stream = parser(
+					args.getTargetSrcPaths(), args.getDependencyClassPath());
 			// specific per project:
 			// args.getAdditionalOutputPath()
 
 			String projectName = args.getTargetSrcPaths()[0];
 
-			// ShellCommand command = new ShellCommand(new
-			// File(getEventsPath()),
-			// new File(getAlgorithmPath()));
-			// command.execute(FREQUENCY, ENTROPY, BREAKER);
+			ShellCommand command = new ShellCommand(new File(
+					getEventsPath(projectName)), new File(getAlgorithmPath()));
+			command.execute(FREQUENCY, ENTROPY, BREAKER);
 
 			EpisodeParser episodeParser = new EpisodeParser(new File(
 					getEventsPath(projectName)), reader);
@@ -105,6 +103,7 @@ public class runner {
 					+ counter(filtered));
 			Map<Integer, Set<Episode>> superPatterns = patternFilter
 					.subEpisodes(filtered, THRESHSUBP);
+			// Map<Integer, Set<Episode>> superPatterns = debugPatterns();
 			System.out
 					.println("Number of episodes after filtering subepisodes: "
 							+ counter(superPatterns));
@@ -122,9 +121,9 @@ public class runner {
 			List<Event> mapping = esio.readMapping(FREQUENCY);
 
 			EventStreamGenerator esg = new EventStreamGenerator();
-			Map<String, List<Tuple<Event, List<Event>>>> stream = esg
-					.readStreamObject(new File(getEventsPath(projectName)),
-							FREQUENCY);
+			// Map<String, List<Tuple<Event, List<Event>>>> stream = esg
+			// .readStreamObject(new File(getEventsPath(projectName)),
+			// FREQUENCY);
 
 			// Map<Integer, Set<Episode>> patternFound =
 			// containsSubpattern(repr,
@@ -167,24 +166,60 @@ public class runner {
 			// new PatternSupportWeightFunction(),
 			// new ViolationSupportWeightFunction())))
 			);
-			List<Violation> violations = detection.findViolations(targets);
-			// List<Violation> violations = Lists.newLinkedList();
+			// List<Violation> violations = detection.findViolations(targets);
+			List<Violation> violations = Lists.newLinkedList();
 
 			// output.withRunInfo(key, value)
 			return output.withFindings(violations, ViolationUtils::toFinding);
 		}
 
-//		private void debugStream() {
-//			FileReader reader = new FileReader();
-//			List<String> stream = reader.readFile(new File(getEventsPath()
-//					+ "/freq" + FREQUENCY + "/stream.txt"));
-//			for (String line : stream) {
-//				String[] idx = line.split(",");
-//				if (idx[0].equals("15") || idx[0].equals("21")) {
-//					System.out.println(line);
-//				}
-//			}
-//		}
+		// private void debugStream() {
+		// FileReader reader = new FileReader();
+		// List<String> stream = reader.readFile(new File(getEventsPath()
+		// + "/freq" + FREQUENCY + "/stream.txt"));
+		// for (String line : stream) {
+		// String[] idx = line.split(",");
+		// if (idx[0].equals("15") || idx[0].equals("21")) {
+		// System.out.println(line);
+		// }
+		// }
+		// }
+
+		private Map<Integer, Set<Episode>> debugPatterns() {
+			Map<Integer, Set<Episode>> results = Maps.newLinkedHashMap();
+			Set<Episode> episodes = Sets.newLinkedHashSet();
+			episodes.add(createEpisode(16, 0.95, "1", "8", "33", "1>33", "8>33"));
+			episodes.add(createEpisode(17, 0.97, "1", "8", "33", "33>1"));
+			episodes.add(createEpisode(13, 0.99, "1", "8", "33", "1>8", "33>8"));
+			episodes.add(createEpisode(13, 1.0, "1", "8", "33", "1>8", "1>33",
+					"8>33"));
+			episodes.add(createEpisode(13, 1.0, "1", "8", "33", "1>8", "1>33",
+					"33>8"));
+			episodes.add(createEpisode(12, 1.0, "1", "8", "33", "1>8", "33>1",
+					"33>8"));
+			episodes.add(createEpisode(14, 1.0, "1", "8", "33", "8>1", "8>33"));
+			episodes.add(createEpisode(14, 1.0, "1", "8", "33", "1>33", "8>1",
+					"8>33"));
+			episodes.add(createEpisode(14, 0.98, "1", "8", "33", "8>1", "33>1"));
+			episodes.add(createEpisode(12, 1.0, "1", "8", "33", "8>1", "8>33",
+					"33>1"));
+			episodes.add(createEpisode(13, 1.0, "1", "8", "33", "8>1", "33>1",
+					"33>8"));
+
+			return results;
+		}
+
+		private Episode createEpisode(int frequency, double entropy,
+				String... facts) {
+			Episode episode = new Episode();
+			episode.setFrequency(frequency);
+			episode.setEntropy(entropy);
+
+			for (String fact : facts) {
+				episode.addFact(fact);
+			}
+			return episode;
+		}
 
 		private void checkPatterns(Map<Integer, Set<Episode>> patterns,
 				List<Event> mapping) {
@@ -290,79 +325,80 @@ public class runner {
 			return counter;
 		}
 
-		private void containsPattern(
-				Map<String, List<Tuple<Event, List<Event>>>> stream) {
-			String tn1 = "PreparedStatement";
-			String tn2 = "DBManager";
+		// private void containsPattern(
+		// Map<String, List<Tuple<Event, List<Event>>>> stream) {
+		// String tn1 = "PreparedStatement";
+		// String tn2 = "DBManager";
+		//
+		// String mn1 = "executeQuery";
+		// String mn2 = "closePreparedStatement";
+		//
+		// Event event1 = EventGenerator.invocation(tn1, mn1);
+		// Event event2 = EventGenerator.invocation(tn2, mn2);
+		//
+		// int counter = 0;
+		// int counter1 = 0;
+		// int counter2 = 0;
+		//
+		// int maxLength = 0;
+		//
+		// for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry :
+		// stream
+		// .entrySet()) {
+		// for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
+		// if (tuple.getSecond().size() > maxLength) {
+		// maxLength = tuple.getSecond().size();
+		// }
+		// for (Event event : tuple.getSecond()) {
+		// if (event.equals(event1)) {
+		// counter1++;
+		// }
+		// if (event.equals(event2)) {
+		// counter2++;
+		// }
+		// }
+		// counter += Math.min(counter1, counter2);
+		// counter1 = 0;
+		// counter2 = 0;
+		// }
+		// }
+		// System.out.println("Pattern support = " + counter);
+		// System.out.println("Max method size = " + maxLength);
+		// }
 
-			String mn1 = "executeQuery";
-			String mn2 = "closePreparedStatement";
-
-			Event event1 = EventGenerator.invocation(tn1, mn1);
-			Event event2 = EventGenerator.invocation(tn2, mn2);
-
-			int counter = 0;
-			int counter1 = 0;
-			int counter2 = 0;
-
-			int maxLength = 0;
-
-			for (Map.Entry<String, List<Tuple<Event, List<Event>>>> entry : stream
-					.entrySet()) {
-				for (Tuple<Event, List<Event>> tuple : entry.getValue()) {
-					if (tuple.getSecond().size() > maxLength) {
-						maxLength = tuple.getSecond().size();
-					}
-					for (Event event : tuple.getSecond()) {
-						if (event.equals(event1)) {
-							counter1++;
-						}
-						if (event.equals(event2)) {
-							counter2++;
-						}
-					}
-					counter += Math.min(counter1, counter2);
-					counter1 = 0;
-					counter2 = 0;
-				}
-			}
-			System.out.println("Pattern support = " + counter);
-			System.out.println("Max method size = " + maxLength);
-		}
-
-		private Map<Integer, Set<Episode>> containsSubpattern(
-				Map<Integer, Set<Episode>> episodes, List<Event> mapping) {
-			String tn1 = "Connection";
-			String tn2 = "DBManager";
-
-			Map<Integer, Set<Episode>> p = Maps.newLinkedHashMap();
-
-			String mn1 = "prepareStatement";
-			String mn2 = "closePreparedStatement";
-
-			Event event1 = EventGenerator.invocation(tn1, mn1);
-			Event event2 = EventGenerator.invocation(tn2, mn2);
-
-			int idx1 = mapping.indexOf(event1);
-			int idx2 = mapping.indexOf(event2);
-
-			boolean found = false;
-
-			for (Map.Entry<Integer, Set<Episode>> entry : episodes.entrySet()) {
-				for (Episode episode : entry.getValue()) {
-					if (episode.getEvents().contains(new Fact(idx1))
-							&& (episode.getEvents().contains(new Fact(idx2)))) {
-						System.out.println("Pattern: " + episode.toString());
-						found = true;
-						p.put(entry.getKey(), Sets.newHashSet(episode));
-					}
-				}
-			}
-			if (!found) {
-				System.out.println("Pattern is not contained");
-			}
-			return p;
-		}
+		// private Map<Integer, Set<Episode>> containsSubpattern(
+		// Map<Integer, Set<Episode>> episodes, List<Event> mapping) {
+		// String tn1 = "Connection";
+		// String tn2 = "DBManager";
+		//
+		// Map<Integer, Set<Episode>> p = Maps.newLinkedHashMap();
+		//
+		// String mn1 = "prepareStatement";
+		// String mn2 = "closePreparedStatement";
+		//
+		// Event event1 = EventGenerator.invocation(tn1, mn1);
+		// Event event2 = EventGenerator.invocation(tn2, mn2);
+		//
+		// int idx1 = mapping.indexOf(event1);
+		// int idx2 = mapping.indexOf(event2);
+		//
+		// boolean found = false;
+		//
+		// for (Map.Entry<Integer, Set<Episode>> entry : episodes.entrySet()) {
+		// for (Episode episode : entry.getValue()) {
+		// if (episode.getEvents().contains(new Fact(idx1))
+		// && (episode.getEvents().contains(new Fact(idx2)))) {
+		// System.out.println("Pattern: " + episode.toString());
+		// found = true;
+		// p.put(entry.getKey(), Sets.newHashSet(episode));
+		// }
+		// }
+		// }
+		// if (!found) {
+		// System.out.println("Pattern is not contained");
+		// }
+		// return p;
+		// }
 
 		private void getMethodOccs(
 				Map<String, List<Tuple<Event, List<Event>>>> stream) {
@@ -448,17 +484,14 @@ public class runner {
 		}
 
 		private String getEventsPath(String projectName) {
-			// String pathName =
-			// "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-			String pathName = "/home/ervina/eventsData/test/" + projectName
-					+ "/";
+			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
+//			 String pathName = "/home/ervina/eventsData/" + projectName + "/";
 			return pathName;
 		}
 
 		private String getAlgorithmPath() {
-			// String path =
-			// "/Users/ervinacergani/Documens/projects/n-graph-miner/";
-			String path = "/home/ervina/n-graph-miner/";
+			String path = "/Users/ervinacergani/Documens/projects/n-graph-miner/";
+//			 String path = "/home/ervina/n-graph-miner/";
 			return path;
 		}
 	}

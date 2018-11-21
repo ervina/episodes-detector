@@ -51,11 +51,13 @@ public class SequenceGenerator {
 
 			@Override
 			public void acceptAST(String sourceFilePath, CompilationUnit cu) {
-				
-				String relativePath = "." + sourceFilePath.substring(sourcePath.toString().length());
+
+				String relativePath = "."
+						+ sourceFilePath.substring(sourcePath.toString()
+								.length());
 				stream.add(EventGenerator.absolutePath(sourceFilePath));
 				stream.add(EventGenerator.relativePath(relativePath));
-				
+
 				cu.accept(new ASTVisitor() {
 					@Override
 					public boolean visit(MethodDeclaration node) {
@@ -63,20 +65,28 @@ public class SequenceGenerator {
 						ASTNode parent = node.getParent();
 
 						IMethodBinding binding = node.resolveBinding();
-//						adding the parameter types
-//						binding.getParameterTypes()
 
 						firstCtx = null;
 						superCtx = null;
 
 						String typeName = binding.getDeclaringClass().getName();
 						String methodName = binding.getName();
+						
+//						String packageName = binding.getDeclaringClass().getPackage().getName();
+//						String returnType = binding.getReturnType().getQualifiedName();
+//						String erasure = binding.getDeclaringClass().getErasure().getQualifiedName();
+//						String binaryName = binding.getDeclaringClass().getBinaryName();
 
 						elementCtx = EventGenerator.elementContext(typeName,
-								methodName);
+								methodName,
+								getParamTypes(binding.getParameterTypes()));
 
 						ITypeBinding typeBinding = binding.getDeclaringClass()
 								.getTypeDeclaration();
+
+						// namespace???
+						// typeBinding.getPackage();
+
 						getSuper(typeBinding, binding.getMethodDeclaration(),
 								JavaASTUtil.buildSignature(binding));
 						getFirst(typeBinding, binding.getMethodDeclaration(),
@@ -133,7 +143,8 @@ public class SequenceGenerator {
 							String type = tb.getName();
 
 							addEnclosingContextIfAvailable();
-							stream.add(EventGenerator.constructor(type));
+							stream.add(EventGenerator.constructor(type,
+									getParamTypes(mb.getParameterTypes())));
 						} else {
 							try {
 								throw new Exception("Unresolved type");
@@ -161,7 +172,8 @@ public class SequenceGenerator {
 
 							addEnclosingContextIfAvailable();
 							stream.add(EventGenerator.invocation(type,
-									md.getName()));
+									md.getName(),
+									getParamTypes(md.getParameterTypes())));
 						} else {
 							try {
 								throw new Exception("Unresolved type");
@@ -209,7 +221,8 @@ public class SequenceGenerator {
 							.getTypeDeclaration(), mb, sig);
 					if (stb != null) {
 						superCtx = EventGenerator.superContext(stb.getName(),
-								mb.getName());
+								mb.getName(),
+								getParamTypes(mb.getParameterTypes()));
 						return stb;
 					}
 				}
@@ -230,7 +243,8 @@ public class SequenceGenerator {
 							sig);
 					if (stb != null) {
 						firstCtx = EventGenerator.firstContext(stb.getName(),
-								mb.getName());
+								mb.getName(),
+								getParamTypes(mb.getParameterTypes()));
 						return stb;
 					}
 				}
@@ -241,6 +255,15 @@ public class SequenceGenerator {
 						return tb;
 				}
 				return null;
+			}
+
+			private List<String> getParamTypes(ITypeBinding[] parameters) {
+				List<String> result = Lists.newLinkedList();
+
+				for (ITypeBinding param : parameters) {
+					result.add(param.getName());
+				}
+				return result;
 			}
 
 			private ITypeBinding getBase(ITypeBinding tb, IMethodBinding mb,

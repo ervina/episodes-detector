@@ -2,8 +2,12 @@ package cc.episodeMining.mubench.model;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 import cc.kave.commons.model.naming.Names;
 import cc.kave.episodes.model.events.Event;
@@ -13,6 +17,7 @@ public class EventGeneratorTest {
 	
 	private String typeName = "type";
 	private String methodName = "method";
+	private List<String> types;
 	
 	private String method;
 	
@@ -20,7 +25,8 @@ public class EventGeneratorTest {
 	
 	@Before 
 	public void setup() {
-		method = "[?] [" + typeName + "]." + methodName + "()";
+		method = "[?] [" + typeName + "]." + methodName;
+		types = Lists.newLinkedList();
 		
 		event = new Event();
 	}
@@ -30,7 +36,7 @@ public class EventGeneratorTest {
 		String file_path = "file.java";
 
 		event.setKind(EventKind.ABSOLUTE_PATH);
-		event.setMethod(Names.newMethod("[?] [file]." + file_path + "()"));
+		event.setMethod(Names.newMethod("[?] [file]." + file_path));
 
 		Event actuals = EventGenerator.absolutePath(file_path);
 
@@ -42,7 +48,7 @@ public class EventGeneratorTest {
 		String file_path = "file.java";
 
 		event.setKind(EventKind.RELATIVE_PATH);
-		event.setMethod(Names.newMethod("[?] [file]." + file_path + "()"));
+		event.setMethod(Names.newMethod("[?] [file]." + file_path));
 
 		Event actuals = EventGenerator.relativePath(file_path);
 
@@ -51,41 +57,53 @@ public class EventGeneratorTest {
 	
 	@Test
 	public void firstCtx() {
+		method += "()";
+		
 		event.setKind(EventKind.FIRST_DECLARATION);
 		event.setMethod(Names.newMethod(method));
 		
-		Event actuals = EventGenerator.firstContext(typeName, methodName);
+		Event actuals = EventGenerator.firstContext(typeName, methodName, types);
 		
 		assertEquals(event, actuals);
 	}
 	
 	@Test
 	public void superCtx() {
+		types.add("String");
+		method += "(String)";
+		
 		event.setKind(EventKind.SUPER_DECLARATION);
 		event.setMethod(Names.newMethod(method));
 		
-		Event actuals = EventGenerator.superContext(typeName, methodName);
+		Event actuals = EventGenerator.superContext(typeName, methodName, types);
 		
 		assertEquals(event, actuals);
 	}
 
 	@Test
 	public void elementCtx() {
+		types.add("String");
+		types.add("int");
+		
+		method += "(String, int)";
 
 		event.setKind(EventKind.METHOD_DECLARATION);
 		event.setMethod(Names.newMethod(method));
 		
-		Event actuals = EventGenerator.elementContext(typeName, methodName);
+		Event actuals = EventGenerator.elementContext(typeName, methodName, types);
 		
 		assertEquals(event, actuals);
 	}
 	
 	@Test
 	public void invocation() {
+		types.add("Char");
+		method += "(Char)";
+		
 		event.setKind(EventKind.INVOCATION);
 		event.setMethod(Names.newMethod(method));
 		
-		Event actuals = EventGenerator.invocation(typeName, methodName);
+		Event actuals = EventGenerator.invocation(typeName, methodName, types);
 		
 		assertEquals(event, actuals);
 	}
@@ -95,7 +113,7 @@ public class EventGeneratorTest {
 		event.setKind(EventKind.CONSTRUCTOR);
 		event.setMethod(Names.newMethod("[?] [" + typeName + "]..ctor()"));
 		
-		Event actuals = EventGenerator.constructor(typeName);
+		Event actuals = EventGenerator.constructor(typeName, types);
 		
 		assertEquals(event, actuals);
 	}
