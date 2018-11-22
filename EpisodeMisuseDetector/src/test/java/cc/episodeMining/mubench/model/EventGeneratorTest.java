@@ -14,20 +14,19 @@ import cc.kave.episodes.model.events.Event;
 import cc.kave.episodes.model.events.EventKind;
 
 public class EventGeneratorTest {
-	
+
 	private String typeName = "type";
 	private String methodName = "method";
-	private List<String> types;
-	
-	private String method;
-	
+	private List<String> paramTypes;
+	private String returnType;
+
 	private Event event;
-	
-	@Before 
+
+	@Before
 	public void setup() {
-		method = "[?] [" + typeName + "]." + methodName;
-		types = Lists.newLinkedList();
-		
+		paramTypes = Lists.newLinkedList();
+		returnType = "";
+
 		event = new Event();
 	}
 
@@ -42,7 +41,7 @@ public class EventGeneratorTest {
 
 		assertEquals(event, actuals);
 	}
-	
+
 	@Test
 	public void relativePath() {
 		String file_path = "file.java";
@@ -54,77 +53,93 @@ public class EventGeneratorTest {
 
 		assertEquals(event, actuals);
 	}
-	
+
 	@Test
 	public void firstCtx() {
-		method += "()";
-		
+		returnType = "type";
+		String method = "[type] [?] [" + typeName + "]." + methodName + "()";
+
 		event.setKind(EventKind.FIRST_DECLARATION);
 		event.setMethod(Names.newMethod(method));
-		
-		Event actuals = EventGenerator.firstContext(typeName, methodName, types);
-		
+
+		Event actuals = EventGenerator.firstContext(typeName, methodName,
+				paramTypes, returnType);
+
 		assertEquals(event, actuals);
 	}
-	
+
 	@Test
 	public void superCtx() {
-		types.add("String");
-		method += "(String)";
-		
+		paramTypes.add("String");
+		returnType = "void";
+		String method = "[void] [?] [" + typeName + "]." + methodName
+				+ "([String])";
+
 		event.setKind(EventKind.SUPER_DECLARATION);
 		event.setMethod(Names.newMethod(method));
-		
-		Event actuals = EventGenerator.superContext(typeName, methodName, types);
-		
+
+		Event actuals = EventGenerator.superContext(typeName, methodName,
+				paramTypes, returnType);
+
 		assertEquals(event, actuals);
 	}
 
 	@Test
 	public void elementCtx() {
-		types.add("String");
-		types.add("int");
-		
-		method += "(String, int)";
+		paramTypes.add("String");
+		paramTypes.add("int");
+
+		returnType = "String";
+
+		String method = "[String] [?] [" + typeName + "]." + methodName
+				+ "([String], [int])";
 
 		event.setKind(EventKind.METHOD_DECLARATION);
 		event.setMethod(Names.newMethod(method));
-		
-		Event actuals = EventGenerator.elementContext(typeName, methodName, types);
-		
+
+		Event actuals = EventGenerator.elementContext(typeName, methodName,
+				paramTypes, returnType);
+
 		assertEquals(event, actuals);
 	}
-	
+
 	@Test
 	public void invocation() {
-		types.add("Char");
-		method += "(Char)";
-		
+		paramTypes.add("Char");
+		returnType = "String";
+		String method = "[String] [?] [" + typeName + "]." + methodName
+				+ "([Char])";
+
 		event.setKind(EventKind.INVOCATION);
 		event.setMethod(Names.newMethod(method));
-		
-		Event actuals = EventGenerator.invocation(typeName, methodName, types);
-		
+
+		Event actuals = EventGenerator.invocation(typeName, methodName,
+				paramTypes, returnType);
+
 		assertEquals(event, actuals);
 	}
-	
+
 	@Test
 	public void constructor() {
+		returnType = "type1";
+
 		event.setKind(EventKind.CONSTRUCTOR);
-		event.setMethod(Names.newMethod("[?] [" + typeName + "]..ctor()"));
-		
-		Event actuals = EventGenerator.constructor(typeName, types);
-		
+		event.setMethod(Names.newMethod("[type1] [?] [" + typeName
+				+ "]..ctor()"));
+
+		Event actuals = EventGenerator.constructor(typeName, paramTypes,
+				returnType);
+
 		assertEquals(event, actuals);
 	}
-	
+
 	@Test
 	public void initializer() {
 		event.setKind(EventKind.INITIALIZER);
 		event.setMethod(Names.newMethod("[?] [" + typeName + "]..cctor()"));
-		
+
 		Event actuals = EventGenerator.initializer(typeName);
-		
+
 		assertEquals(event, actuals);
 	}
 }

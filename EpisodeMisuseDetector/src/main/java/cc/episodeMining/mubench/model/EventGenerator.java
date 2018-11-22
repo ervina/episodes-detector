@@ -38,41 +38,42 @@ public class EventGenerator {
 	}
 
 	public static Event elementContext(String typeName, String methodName,
-			List<String> paramTypes) {
+			List<String> paramTypes, String returnType) {
 
 		Event event = new Event();
 		event.setKind(EventKind.METHOD_DECLARATION);
-		event.setMethod(getMethodName(typeName, methodName, paramTypes));
+		event.setMethod(getMethodName(typeName, methodName, paramTypes,
+				returnType));
 
 		return event;
 	}
 
 	public static Event superContext(String type, String method,
-			List<String> paramTypes) {
+			List<String> paramTypes, String returnType) {
 
 		Event event = new Event();
 		event.setKind(EventKind.SUPER_DECLARATION);
-		event.setMethod(getMethodName(type, method, paramTypes));
+		event.setMethod(getMethodName(type, method, paramTypes, returnType));
 
 		return event;
 	}
 
 	public static Event firstContext(String type, String method,
-			List<String> paramTypes) {
+			List<String> paramTypes, String returnType) {
 
 		Event event = new Event();
 		event.setKind(EventKind.FIRST_DECLARATION);
-		event.setMethod(getMethodName(type, method, paramTypes));
+		event.setMethod(getMethodName(type, method, paramTypes, returnType));
 
 		return event;
 	}
 
 	public static Event invocation(String type, String method,
-			List<String> paramTypes) {
+			List<String> paramTypes, String returnType) {
 
 		Event event = new Event();
 		event.setKind(EventKind.INVOCATION);
-		event.setMethod(getMethodName(type, method, paramTypes));
+		event.setMethod(getMethodName(type, method, paramTypes, returnType));
 
 		return event;
 	}
@@ -82,24 +83,28 @@ public class EventGenerator {
 
 		Event event = new Event();
 		event.setKind(EventKind.INITIALIZER);
-		event.setMethod(getMethodName(type, method, Lists.newArrayList()));
+		event.setMethod(getMethodName(type, method, Lists.newArrayList(), ""));
 
 		return event;
 	}
 
-	public static Event constructor(String type, List<String> paramTypes) {
+	public static Event constructor(String type, List<String> paramTypes,
+			String returnType) {
 		String method = ".ctor";
 
 		Event event = new Event();
 		event.setKind(EventKind.CONSTRUCTOR);
-		event.setMethod(getMethodName(type, method, paramTypes));
+		event.setMethod(getMethodName(type, method, paramTypes, returnType));
 
 		return event;
 	}
 
 	private static IMethodName getMethodName(String type, String method,
-			List<String> types) {
+			List<String> types, String returnType) {
 		StringBuilder sb = new StringBuilder();
+		if (returnType.length() > 0) {
+			sb.append("[" + returnType + "] ");
+		}
 		sb.append("[?] [" + type + "].");
 		sb.append(method + "(");
 		boolean isFirst = true;
@@ -108,10 +113,9 @@ public class EventGenerator {
 			for (String t : types) {
 				if (!isFirst) {
 					sb.append(", ");
-
 				}
 				isFirst = false;
-				sb.append(t);
+				sb.append("[" + t + "]");
 			}
 		}
 		sb.append(")");

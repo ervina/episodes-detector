@@ -61,7 +61,7 @@ public class runner {
 	private static final int BREAKER = 5000;
 
 	private static final int THRESHFREQ = 10;
-	private static final double THRESHENT = 0.8;
+	private static final double THRESHENT = 0.9;
 	private static final double THRESHSUBP = 1.0;
 
 	public static void main(String[] args) throws Exception {
@@ -120,10 +120,10 @@ public class runner {
 					getEventsPath(projectName)));
 			List<Event> mapping = esio.readMapping(FREQUENCY);
 
-			EventStreamGenerator esg = new EventStreamGenerator();
-			// Map<String, List<Tuple<Event, List<Event>>>> stream = esg
-			// .readStreamObject(new File(getEventsPath(projectName)),
-			// FREQUENCY);
+//			EventStreamGenerator esg = new EventStreamGenerator();
+//			Map<String, List<Tuple<Event, List<Event>>>> stream = esg
+//					.readStreamObject(new File(getEventsPath(projectName)),
+//							FREQUENCY);
 
 			// Map<Integer, Set<Episode>> patternFound =
 			// containsSubpattern(repr,
@@ -484,14 +484,15 @@ public class runner {
 		}
 
 		private String getEventsPath(String projectName) {
-			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-//			 String pathName = "/home/ervina/eventsData/" + projectName + "/";
+//			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
+			 String pathName = "/home/ervina/eventsData/" + projectName + "/qualified/";
+//			String pathName = "/home/ervina/eventsData/test/size4/";
 			return pathName;
 		}
 
 		private String getAlgorithmPath() {
-			String path = "/Users/ervinacergani/Documens/projects/n-graph-miner/";
-//			 String path = "/home/ervina/n-graph-miner/";
+//			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
+			 String path = "/home/ervina/n-graph-miner/";
 			return path;
 		}
 	}

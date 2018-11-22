@@ -71,16 +71,17 @@ public class SequenceGenerator {
 
 						ITypeBinding typeBinding = binding.getDeclaringClass()
 								.getTypeDeclaration();
+
+						String typeName = typeBinding.getErasure()
+								.getQualifiedName();
 						String methodName = binding.getName();
+						List<String> paramNames = getParamTypes(binding
+								.getParameterTypes());
+						String returnType = binding.getReturnType()
+								.getErasure().getName();
 
-						// String returnType =
-						// binding.getReturnType().getQualifiedName();
-						// String erasure =
-						// binding.getDeclaringClass().getErasure().getQualifiedName();
-
-						elementCtx = EventGenerator.elementContext(
-								typeBinding.getQualifiedName(), methodName,
-								getParamTypes(binding.getParameterTypes()));
+						elementCtx = EventGenerator.elementContext(typeName,
+								methodName, paramNames, returnType);
 
 						getSuper(typeBinding, binding.getMethodDeclaration(),
 								JavaASTUtil.buildSignature(binding));
@@ -135,11 +136,16 @@ public class SequenceGenerator {
 							String sig = JavaASTUtil.buildSignature(md);
 							ITypeBinding tb = getBase(md.getDeclaringClass()
 									.getTypeDeclaration(), md, sig);
+
 							String type = tb.getQualifiedName();
+							List<String> paramTypes = getParamTypes(mb
+									.getParameterTypes());
+							String returnType = mb.getReturnType().getErasure()
+									.getName();
 
 							addEnclosingContextIfAvailable();
 							stream.add(EventGenerator.constructor(type,
-									getParamTypes(mb.getParameterTypes())));
+									paramTypes, returnType));
 						} else {
 							try {
 								throw new Exception("Unresolved type");
@@ -163,12 +169,17 @@ public class SequenceGenerator {
 							String sig = JavaASTUtil.buildSignature(md);
 							ITypeBinding tb = getBase(md.getDeclaringClass()
 									.getTypeDeclaration(), md, sig);
+
 							String type = tb.getQualifiedName();
+							String method = md.getName();
+							List<String> params = getParamTypes(md
+									.getParameterTypes());
+							String returnType = mb.getReturnType().getErasure()
+									.getName();
 
 							addEnclosingContextIfAvailable();
-							stream.add(EventGenerator.invocation(type,
-									md.getName(),
-									getParamTypes(md.getParameterTypes())));
+							stream.add(EventGenerator.invocation(type, method,
+									params, returnType));
 						} else {
 							try {
 								throw new Exception("Unresolved type");
@@ -215,9 +226,15 @@ public class SequenceGenerator {
 					ITypeBinding stb = getSuper(tb.getSuperclass()
 							.getTypeDeclaration(), mb, sig);
 					if (stb != null) {
-						superCtx = EventGenerator.superContext(
-								stb.getQualifiedName(), mb.getName(),
-								getParamTypes(mb.getParameterTypes()));
+						String type = stb.getQualifiedName();
+						String method = mb.getName();
+						List<String> params = getParamTypes(mb
+								.getParameterTypes());
+						String returnType = mb.getReturnType().getErasure()
+								.getName();
+
+						superCtx = EventGenerator.superContext(type, method,
+								params, returnType);
 						return stb;
 					}
 				}
@@ -237,9 +254,15 @@ public class SequenceGenerator {
 					ITypeBinding stb = getFirst(itb.getTypeDeclaration(), mb,
 							sig);
 					if (stb != null) {
-						firstCtx = EventGenerator.firstContext(
-								stb.getQualifiedName(), mb.getName(),
-								getParamTypes(mb.getParameterTypes()));
+						String type = stb.getQualifiedName();
+						String method = mb.getName();
+						List<String> params = getParamTypes(mb
+								.getParameterTypes());
+						String returnType = mb.getReturnType().getErasure()
+								.getName();
+
+						firstCtx = EventGenerator.firstContext(type, method,
+								params, returnType);
 						return stb;
 					}
 				}
@@ -256,7 +279,7 @@ public class SequenceGenerator {
 				List<String> result = Lists.newLinkedList();
 
 				for (ITypeBinding param : parameters) {
-					result.add(param.getName());
+					result.add(param.getErasure().getName());
 				}
 				return result;
 			}
