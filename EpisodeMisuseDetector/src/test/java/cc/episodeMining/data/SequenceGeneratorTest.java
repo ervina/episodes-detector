@@ -51,9 +51,9 @@ public class SequenceGeneratorTest {
 				+ "/test.java", EventKind.ABSOLUTE_PATH));
 		expected.add(createEvent("[?] [test]../test.java",
 				EventKind.RELATIVE_PATH));
-		expected.add(createEvent("[void] [?] [C].m([Object])",
+		expected.add(createEvent("[void:C] [C].m([Object])",
 				EventKind.METHOD_DECLARATION));
-		expected.add(createEvent("[int] [?] [java.lang.Object].hashCode()",
+		expected.add(createEvent("[int:java.lang.Object] [Object].hashCode()",
 				EventKind.INVOCATION));
 
 		List<Event> actuals = sut.generateMethodTraces(rootFolder.getRoot(),
@@ -76,13 +76,13 @@ public class SequenceGeneratorTest {
 				+ "/test.java", EventKind.ABSOLUTE_PATH));
 		expected.add(createEvent("[?] [test]../test.java",
 				EventKind.RELATIVE_PATH));
-		expected.add(createEvent("[void] [?] [C].m([Object])",
+		expected.add(createEvent("[void:C] [C].m([Object])",
 				EventKind.METHOD_DECLARATION));
-		expected.add(createEvent("[int] [?] [java.lang.Object].hashCode()",
+		expected.add(createEvent("[int:java.lang.Object] [Object].hashCode()",
 				EventKind.INVOCATION));
-		expected.add(createEvent("[void] [?] [C].n([Object])",
+		expected.add(createEvent("[void:C] [C].n([Object])",
 				EventKind.METHOD_DECLARATION));
-		expected.add(createEvent("[int] [?] [java.lang.Object].hashCode()",
+		expected.add(createEvent("[int:java.lang.Object] [Object].hashCode()",
 				EventKind.INVOCATION));
 
 		List<Event> actuals = sut.generateMethodTraces(rootFolder.getRoot(),
@@ -106,14 +106,14 @@ public class SequenceGeneratorTest {
 				+ "/test.java", EventKind.ABSOLUTE_PATH));
 		expected.add(createEvent("[?] [test]../test.java",
 				EventKind.RELATIVE_PATH));
-		expected.add(createEvent("[?] [C]..cctor()", EventKind.INITIALIZER));
-		expected.add(createEvent("[void] [?] [java.lang.Object]..ctor()",
+		expected.add(createEvent("[C] [C]..cctor()", EventKind.INITIALIZER));
+		expected.add(createEvent("[void:java.lang.Object] [Object]..ctor()",
 				EventKind.CONSTRUCTOR));
-		expected.add(createEvent("[int] [?] [java.lang.Object].hashCode()",
+		expected.add(createEvent("[int:java.lang.Object] [Object].hashCode()",
 				EventKind.INVOCATION));
-		expected.add(createEvent("[void] [?] [C].n([Object])",
+		expected.add(createEvent("[void:C] [C].n([Object])",
 				EventKind.METHOD_DECLARATION));
-		expected.add(createEvent("[int] [?] [java.lang.Object].hashCode()",
+		expected.add(createEvent("[int:java.lang.Object] [Object].hashCode()",
 				EventKind.INVOCATION));
 
 		List<Event> actuals = sut.generateMethodTraces(rootFolder.getRoot(),
@@ -147,9 +147,9 @@ public class SequenceGeneratorTest {
 				EventKind.ABSOLUTE_PATH));
 		expected.add(createEvent("[?] [test]../test.java",
 				EventKind.RELATIVE_PATH));
-		expected.add(createEvent("[void] [?] [C].m([Object])",
+		expected.add(createEvent("[void:C] [C].m([Object])",
 				EventKind.METHOD_DECLARATION));
-		expected.add(createEvent("[int] [?] [java.lang.Object].hashCode()",
+		expected.add(createEvent("[int:java.lang.Object] [Object].hashCode()",
 				EventKind.INVOCATION));
 
 		expected.add(createEvent("[?] [test1]."
@@ -158,13 +158,13 @@ public class SequenceGeneratorTest {
 		expected.add(createEvent("[?] [test1]../test1.java",
 				EventKind.RELATIVE_PATH));
 		expected.add(createEvent(
-				"[String] [?] [NullTextNull].pattern([Object])",
+				"[String:NullTextNull] [NullTextNull].pattern([Object])",
 				EventKind.METHOD_DECLARATION));
-		expected.add(createEvent("[String] [?] [StrBuilder].pattern([Object])",
+		expected.add(createEvent("[String:StrBuilder] [StrBuilder].pattern([Object])",
 				EventKind.SUPER_DECLARATION));
-		expected.add(createEvent("[String] [?] [StrBuilder].getNullText()",
+		expected.add(createEvent("[String:StrBuilder] [StrBuilder].getNullText()",
 				EventKind.INVOCATION));
-		expected.add(createEvent("[String] [?] [java.lang.Object].toString()",
+		expected.add(createEvent("[String:java.lang.Object] [Object].toString()",
 				EventKind.INVOCATION));
 
 		File path = new File(rootFolder.getRoot().getAbsolutePath());
@@ -197,18 +197,18 @@ public class SequenceGeneratorTest {
 		expected.add(createEvent("[?] [test]../test.java",
 				EventKind.RELATIVE_PATH));
 		expected.add(createEvent(
-				"[String] [?] [NullTextNull].pattern([Object])",
+				"[String:NullTextNull] [NullTextNull].pattern([Object])",
 				EventKind.METHOD_DECLARATION));
-		expected.add(createEvent("[String] [?] [StrBuilder].pattern([Object])",
+		expected.add(createEvent("[String:StrBuilder] [StrBuilder].pattern([Object])",
 				EventKind.FIRST_DECLARATION));
-		expected.add(createEvent("[String] [?] [StrBuilder].getNullText()",
+		expected.add(createEvent("[String:StrBuilder] [StrBuilder].getNullText()",
 				EventKind.INVOCATION));
-		expected.add(createEvent("[String] [?] [java.lang.Object].toString()",
+		expected.add(createEvent("[String:java.lang.Object] [Object].toString()",
 				EventKind.INVOCATION));
-		expected.add(createEvent("[void] [?] [javax.swing.JPanel]..ctor()",
+		expected.add(createEvent("[void:javax.swing.JPanel] [JPanel]..ctor()",
 				EventKind.CONSTRUCTOR));
 		expected.add(createEvent(
-				"[Component] [?] [java.awt.Container].add([Component])",
+				"[Component:java.awt.Container] [Container].add([Component])",
 				EventKind.INVOCATION));
 
 		File path = new File(rootFolder.getRoot().getAbsolutePath());

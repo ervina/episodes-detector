@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import cc.episodeMining.algorithm.ShellCommand;
 import cc.episodeMining.data.EventStreamGenerator;
 import cc.episodeMining.data.EventsFilter;
 import cc.episodeMining.data.SequenceGenerator;
@@ -61,7 +60,7 @@ public class runner {
 	private static final int BREAKER = 5000;
 
 	private static final int THRESHFREQ = 10;
-	private static final double THRESHENT = 0.9;
+	private static final double THRESHENT = 0.8;
 	private static final double THRESHSUBP = 1.0;
 
 	public static void main(String[] args) throws Exception {
@@ -74,16 +73,17 @@ public class runner {
 
 		public DetectorOutput detectViolations(DetectorArgs args,
 				DetectorOutput.Builder output) throws Exception {
-			Map<String, List<Tuple<Event, List<Event>>>> stream = parser(
-					args.getTargetSrcPaths(), args.getDependencyClassPath());
+			// Map<String, List<Tuple<Event, List<Event>>>> stream = parser(
+			// args.getTargetSrcPaths(), args.getDependencyClassPath());
 			// specific per project:
 			// args.getAdditionalOutputPath()
 
-			String projectName = args.getTargetSrcPaths()[0];
+			// String projectName = args.getTargetSrcPaths()[0];
+			String projectName = "chensum";
 
-			ShellCommand command = new ShellCommand(new File(
-					getEventsPath(projectName)), new File(getAlgorithmPath()));
-			command.execute(FREQUENCY, ENTROPY, BREAKER);
+			// ShellCommand command = new ShellCommand(new File(
+			// getEventsPath(projectName)), new File(getAlgorithmPath()));
+			// command.execute(FREQUENCY, ENTROPY, BREAKER);
 
 			EpisodeParser episodeParser = new EpisodeParser(new File(
 					getEventsPath(projectName)), reader);
@@ -94,13 +94,15 @@ public class runner {
 
 			// episodes.remove(7);
 			// episodes.remove(6);
-			// episodes.remove(5);
+			episodes.remove(5);
+			// episodes.remove(4);
 
 			PatternFilter patternFilter = new PatternFilter();
 			Map<Integer, Set<Episode>> filtered = patternFilter.filter(
 					episodes, THRESHFREQ, THRESHENT);
 			System.out.println("Number of patterns after filter: "
 					+ counter(filtered));
+
 			Map<Integer, Set<Episode>> superPatterns = patternFilter
 					.subEpisodes(filtered, THRESHSUBP);
 			// Map<Integer, Set<Episode>> superPatterns = debugPatterns();
@@ -120,10 +122,10 @@ public class runner {
 					getEventsPath(projectName)));
 			List<Event> mapping = esio.readMapping(FREQUENCY);
 
-//			EventStreamGenerator esg = new EventStreamGenerator();
-//			Map<String, List<Tuple<Event, List<Event>>>> stream = esg
-//					.readStreamObject(new File(getEventsPath(projectName)),
-//							FREQUENCY);
+			EventStreamGenerator esg = new EventStreamGenerator();
+			Map<String, List<Tuple<Event, List<Event>>>> stream = esg
+					.readStreamObject(new File(getEventsPath(projectName)),
+							FREQUENCY);
 
 			// Map<Integer, Set<Episode>> patternFound =
 			// containsSubpattern(repr,
@@ -166,10 +168,10 @@ public class runner {
 			// new PatternSupportWeightFunction(),
 			// new ViolationSupportWeightFunction())))
 			);
-			// List<Violation> violations = detection.findViolations(targets);
-			List<Violation> violations = Lists.newLinkedList();
+			List<Violation> violations = detection.findViolations(targets);
+			// List<Violation> violations = Lists.newLinkedList();
 
-			// output.withRunInfo(key, value)
+			// output.withRunInfo(key, value);
 			return output.withFindings(violations, ViolationUtils::toFinding);
 		}
 
@@ -295,7 +297,10 @@ public class runner {
 					.relativeFileMethodStructure(absPath);
 			// containsPattern(relPath);
 			getNoFiles(relPath);
-			esg.generateFiles(new File(getEventsPath(srcPaths[0])), FREQUENCY,
+			// esg.generateFiles(new File(getEventsPath(srcPaths[0])),
+			// FREQUENCY,
+			// relPath);
+			esg.generateFiles(new File(getEventsPath("chensum")), FREQUENCY,
 					relPath);
 
 			return relPath;
@@ -484,15 +489,18 @@ public class runner {
 		}
 
 		private String getEventsPath(String projectName) {
-//			String pathName = "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
-			 String pathName = "/home/ervina/eventsData/" + projectName + "/qualified/";
-//			String pathName = "/home/ervina/eventsData/test/size4/";
+			// String pathName =
+			// "/Users/ervinacergani/Documents/projects/miner-detector/streamData/";
+			String pathName = "/home/ervina/eventsData/" + projectName
+					+ "/qualified/";
+			// String pathName = "/home/ervina/eventsData/test/size4/";
 			return pathName;
 		}
 
 		private String getAlgorithmPath() {
-//			String path = "/Users/ervinacergani/Documents/projects/n-graph-miner/";
-			 String path = "/home/ervina/n-graph-miner/";
+			// String path =
+			// "/Users/ervinacergani/Documents/projects/n-graph-miner/";
+			String path = "/home/ervina/n-graph-miner/";
 			return path;
 		}
 	}

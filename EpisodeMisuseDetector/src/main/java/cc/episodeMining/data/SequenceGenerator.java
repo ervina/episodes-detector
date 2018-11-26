@@ -43,7 +43,8 @@ public class SequenceGenerator {
 		}
 		FileASTRequestor r = new FileASTRequestor() {
 
-			private String type;
+			private String qualifiedType;
+			private String typeName;
 
 			private Event firstCtx;
 			private Event superCtx;
@@ -72,16 +73,18 @@ public class SequenceGenerator {
 						ITypeBinding typeBinding = binding.getDeclaringClass()
 								.getTypeDeclaration();
 
-						String typeName = typeBinding.getErasure()
+						String qualifiedType = typeBinding.getErasure()
 								.getQualifiedName();
+						String typeName = typeBinding.getErasure().getName();
 						String methodName = binding.getName();
 						List<String> paramNames = getParamTypes(binding
 								.getParameterTypes());
 						String returnType = binding.getReturnType()
 								.getErasure().getName();
 
-						elementCtx = EventGenerator.elementContext(typeName,
-								methodName, paramNames, returnType);
+						elementCtx = EventGenerator.elementContext(
+								qualifiedType, typeName, methodName,
+								paramNames, returnType);
 
 						getSuper(typeBinding, binding.getMethodDeclaration(),
 								JavaASTUtil.buildSignature(binding));
@@ -104,20 +107,23 @@ public class SequenceGenerator {
 					@Override
 					public boolean visit(TypeDeclaration node) {
 
-						type = null;
+						qualifiedType = null;
+						typeName = null;
 
 						ITypeBinding binding = node.resolveBinding();
 						ITypeBinding tb = binding.getTypeDeclaration();
-						type = tb.getQualifiedName();
+						qualifiedType = tb.getQualifiedName();
+						typeName = tb.getName();
 
 						return super.visit(node);
 					}
 
 					@Override
 					public boolean visit(Initializer node) {
-						if (type != null) {
-							stream.add(EventGenerator.initializer(type));
-							type = null;
+						if (qualifiedType != null) {
+							stream.add(EventGenerator.initializer(
+									qualifiedType, typeName));
+							qualifiedType = null;
 						}
 						return super.visit(node);
 					}
@@ -145,7 +151,7 @@ public class SequenceGenerator {
 
 							addEnclosingContextIfAvailable();
 							stream.add(EventGenerator.constructor(type,
-									paramTypes, returnType));
+									tb.getName(), paramTypes, returnType));
 						} else {
 							try {
 								throw new Exception("Unresolved type");
@@ -178,8 +184,8 @@ public class SequenceGenerator {
 									.getName();
 
 							addEnclosingContextIfAvailable();
-							stream.add(EventGenerator.invocation(type, method,
-									params, returnType));
+							stream.add(EventGenerator.invocation(type,
+									tb.getName(), method, params, returnType));
 						} else {
 							try {
 								throw new Exception("Unresolved type");
@@ -233,8 +239,8 @@ public class SequenceGenerator {
 						String returnType = mb.getReturnType().getErasure()
 								.getName();
 
-						superCtx = EventGenerator.superContext(type, method,
-								params, returnType);
+						superCtx = EventGenerator.superContext(type,
+								stb.getName(), method, params, returnType);
 						return stb;
 					}
 				}
@@ -261,8 +267,8 @@ public class SequenceGenerator {
 						String returnType = mb.getReturnType().getErasure()
 								.getName();
 
-						firstCtx = EventGenerator.firstContext(type, method,
-								params, returnType);
+						firstCtx = EventGenerator.firstContext(type,
+								stb.getName(), method, params, returnType);
 						return stb;
 					}
 				}

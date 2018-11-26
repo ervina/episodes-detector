@@ -37,75 +37,82 @@ public class EventGenerator {
 		return event;
 	}
 
-	public static Event elementContext(String typeName, String methodName,
-			List<String> paramTypes, String returnType) {
+	public static Event elementContext(String qualifiedType, String type,
+			String methodName, List<String> paramTypes, String returnType) {
 
 		Event event = new Event();
 		event.setKind(EventKind.METHOD_DECLARATION);
-		event.setMethod(getMethodName(typeName, methodName, paramTypes,
+		event.setMethod(getMethodName(qualifiedType, type, methodName,
+				paramTypes, returnType));
+
+		return event;
+	}
+
+	public static Event superContext(String qualifiedType, String type,
+			String method, List<String> paramTypes, String returnType) {
+
+		Event event = new Event();
+		event.setKind(EventKind.SUPER_DECLARATION);
+		event.setMethod(getMethodName(qualifiedType, type, method, paramTypes,
 				returnType));
 
 		return event;
 	}
 
-	public static Event superContext(String type, String method,
-			List<String> paramTypes, String returnType) {
-
-		Event event = new Event();
-		event.setKind(EventKind.SUPER_DECLARATION);
-		event.setMethod(getMethodName(type, method, paramTypes, returnType));
-
-		return event;
-	}
-
-	public static Event firstContext(String type, String method,
-			List<String> paramTypes, String returnType) {
+	public static Event firstContext(String qualifiedType, String type,
+			String method, List<String> paramTypes, String returnType) {
 
 		Event event = new Event();
 		event.setKind(EventKind.FIRST_DECLARATION);
-		event.setMethod(getMethodName(type, method, paramTypes, returnType));
+		event.setMethod(getMethodName(qualifiedType, type, method, paramTypes,
+				returnType));
 
 		return event;
 	}
 
-	public static Event invocation(String type, String method,
-			List<String> paramTypes, String returnType) {
+	public static Event invocation(String qualifiedType, String type,
+			String method, List<String> paramTypes, String returnType) {
 
 		Event event = new Event();
 		event.setKind(EventKind.INVOCATION);
-		event.setMethod(getMethodName(type, method, paramTypes, returnType));
+		event.setMethod(getMethodName(qualifiedType, type, method, paramTypes,
+				returnType));
 
 		return event;
 	}
 
-	public static Event initializer(String type) {
+	public static Event initializer(String qualifiedType, String type) {
 		String method = ".cctor";
 
 		Event event = new Event();
 		event.setKind(EventKind.INITIALIZER);
-		event.setMethod(getMethodName(type, method, Lists.newArrayList(), ""));
+		event.setMethod(getMethodName(qualifiedType, type, method,
+				Lists.newArrayList(), ""));
 
 		return event;
 	}
 
-	public static Event constructor(String type, List<String> paramTypes,
-			String returnType) {
+	public static Event constructor(String qualifiedType, String type,
+			List<String> paramTypes, String returnType) {
 		String method = ".ctor";
 
 		Event event = new Event();
 		event.setKind(EventKind.CONSTRUCTOR);
-		event.setMethod(getMethodName(type, method, paramTypes, returnType));
+		event.setMethod(getMethodName(qualifiedType, type, method, paramTypes,
+				returnType));
 
 		return event;
 	}
 
-	private static IMethodName getMethodName(String type, String method,
-			List<String> types, String returnType) {
+	private static IMethodName getMethodName(String qualifiedType, String type,
+			String method, List<String> types, String returnType) {
 		StringBuilder sb = new StringBuilder();
+		sb.append("[");
 		if (returnType.length() > 0) {
-			sb.append("[" + returnType + "] ");
+			sb.append(returnType + ":");
 		}
-		sb.append("[?] [" + type + "].");
+		sb.append(qualifiedType + "] ");
+		sb.append("[" + type + "].");
 		sb.append(method + "(");
 		boolean isFirst = true;
 
